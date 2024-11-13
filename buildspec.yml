@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+
+  pre_build:
+    commands:
+      # 初始化 git 以获取版本号
+      # 建立 target/classes 目錄
+      - mkdir -p target/classes
+      # 將當前的 commit ID 寫入 git.properties
+      - echo "git.commit.id.abbrev=${CODEBUILD_RESOLVED_SOURCE_VERSION}" > target/classes/git.properties
+
+  build:
+    commands:
+      - mvn clean package
+
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Checking built artifacts"
+      - ls -l target/
+
+cache:
+  paths:
+    - '/root/.m2/**/*'    # 缓存 Maven 依赖
+
+artifacts:
+  files:
+    - target/adl-apps-nmns-0.0.1-SNAPSHOT.jar
+    - scripts/**/*
+    - appspec.yml
+  discard-paths: no

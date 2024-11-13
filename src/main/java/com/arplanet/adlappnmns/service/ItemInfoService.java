@@ -1,0 +1,47 @@
+package com.arplanet.adlappnmns.service;
+
+import com.arplanet.adlappnmns.dto.ItemInfoDTO;
+import com.arplanet.adlappnmns.log.Logger;
+import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+
+@Service("itemInfoService")
+@Slf4j
+@RequiredArgsConstructor
+public class ItemInfoService extends NmnsServiceBase<ItemInfoDTO> {
+
+    private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
+    private final Logger logger;
+
+    @Override
+    protected void validateData(ItemInfoDTO data) {
+        Objects.requireNonNull(data.getItemSn(), "item_sn 不可為 null");
+        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
+        Objects.requireNonNull(data.getItemType(), "item_type 不可為 null");
+        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
+        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+    }
+
+
+    @Override
+    public String getId(ItemInfoDTO data) {
+        return data.getItemSn();
+    }
+
+
+    @Override
+    public List<ItemInfoDTO> findByDate(String date) {
+        try {
+            date = date.replace("-", "");
+            return nmnsContentUpdatedTimeRepository.findItemInfo(date);
+        } catch (Exception e) {
+            logger.error("至資料庫取得資料失敗", e);
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -1,0 +1,295 @@
+[33mcommit a7fabd7e3176c9d4b317dc2f5beba2b6fc3be628[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Nov 4 15:53:20 2024 +0800
+
+    adjust dev
+
+[33mcommit 51405318ee92f8457c8d6347e75f005de93774ff[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Nov 4 11:58:05 2024 +0800
+
+    adjust *.sh
+
+[33mcommit e4e3e1938c0852327be81a08bbbb9b5481cf221e[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Nov 1 18:39:48 2024 +0800
+
+    dev
+
+[33mcommit ae223bb39d044aa4d2434f3d1df6f144063df89b[m[33m ([m[1;31morigin/test[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/backup/main[m[33m, [m[1;32mtest[m[33m, [m[1;32mmain[m[33m, [m[1;32mbackup/main[m[33m)[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Nov 1 11:24:12 2024 +0800
+
+    fix log issue
+
+[33mcommit 8d80f56e2c80f8dbfe729e22c59b2901b64184f4[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 18:46:14 2024 +0800
+
+    debug
+
+[33mcommit 935a0c753db95b7c800619ec49c2e9bff6e7a58c[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 15:05:45 2024 +0800
+
+    debug
+
+[33mcommit 9323bde3896a4b42349b1f0ab6f7a394c772f19f[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 14:15:32 2024 +0800
+
+    debug
+
+[33mcommit 8f5a8aefa5f5e955797762158092f56cf2759aae[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 11:47:47 2024 +0800
+
+    debug
+
+[33mcommit b3477a85b5247086eed68fb1c3bcc9e80e6d98db[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 11:32:04 2024 +0800
+
+    debug
+
+[33mcommit 6b406cfbae7d23d5a7ebcd9ff3c664aa4aeef45f[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 11:28:19 2024 +0800
+
+    debug
+
+[33mcommit c42b346146adb61a0a25501ffc8d0269b08e829a[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 11:23:25 2024 +0800
+
+    debug
+
+[33mcommit 27f8e68299d3eeea4e05cb75d09a41085cc165ec[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 30 11:16:13 2024 +0800
+
+    adjust properties
+
+[33mcommit 6f8d2bcbbaf1eb3a60e91d8e506ba52891056374[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 29 14:29:45 2024 +0800
+
+    debug again
+
+[33mcommit 74f861659301ef3ed5d4c9b4e639c611475553f8[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 29 14:12:29 2024 +0800
+
+    debug
+
+[33mcommit bee9208838dd5027fe5d4de137b796b4f02507c8[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 29 13:53:23 2024 +0800
+
+    adjust buildpsec
+
+[33mcommit a58ba0ccc67cdd41fe866a11c368b95b37c18e48[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 29 12:26:45 2024 +0800
+
+    remove gitignore.application-test.properties
+
+[33mcommit 360fae7c09edf111383a30f5c7d88dbc7b3adcc6[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 29 12:08:29 2024 +0800
+
+    CI/CD
+
+[33mcommit ab236ce9f434fd37d337d990447c5d8e97b07758[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Oct 28 14:33:55 2024 +0800
+
+    CI/CD first try
+
+[33mcommit e8778442757d2254296cac120c97a5888d8b6ec1[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Oct 25 18:48:18 2024 +0800
+
+    done with log
+
+[33mcommit 3a6cc4dd5b1563b10b742034e39a3dbed9987f28[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Thu Oct 24 18:25:57 2024 +0800
+
+    done with log
+
+[33mcommit 0cb34b2824cbf3baa086fb730c38600ffe99e3aa[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 23 18:35:44 2024 +0800
+
+    covert string log into json log
+
+[33mcommit 249a17152d600eb63142de25bf98e3b0b8c4f506[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 22 17:27:21 2024 +0800
+
+    delete file
+
+[33mcommit b43cf1a3240347ed86d02e32294f5c4af26dd126[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 22 17:01:04 2024 +0800
+
+    done
+
+[33mcommit a8fe3dee38eabff41dbd7a0ca49cf55070f7f05c[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Thu Oct 17 18:48:18 2024 +0800
+
+    adjust for EC2
+
+[33mcommit d5ad9db54c0a63d435bee9070c4fa832fadac49b[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 16 10:12:20 2024 +0800
+
+    test
+
+[33mcommit 3e40be81a2354ac15b95b3d7ea6327aed90616e3[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 15 18:37:11 2024 +0800
+
+    start game_playing_time
+
+[33mcommit 444932cc4e750850e23e3853d41c0c675b570e74[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Oct 11 18:43:40 2024 +0800
+
+    platform and instruction done
+
+[33mcommit 93361079d251e4409d156e0a8532be675ecc411a[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Oct 9 18:36:31 2024 +0800
+
+    new data
+
+[33mcommit 343f6aca6d9b2ca0fe79131e4efd07a94db5a8b7[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Oct 7 18:40:59 2024 +0800
+
+    adjust repository done
+
+[33mcommit 372fd4b5f1d64cee324c85af59437423440b86d4[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Oct 4 18:40:30 2024 +0800
+
+    adjust dto
+
+[33mcommit b037fb1890504c7c0168a2a17e973e2fb650c90f[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Oct 1 18:43:31 2024 +0800
+
+    adjust db problem
+
+[33mcommit b481766f3d17087b39b5e60ddabcdda839a0b0f7[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Thu Sep 26 18:50:28 2024 +0800
+
+    adjust a lot
+
+[33mcommit b14b9266e4eae4890232dbf6970bca1bf40a9ed5[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Sep 25 18:44:22 2024 +0800
+
+    adjust structure
+
+[33mcommit 2640e74f935b1a300536e67218284bb60589c425[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Sep 24 18:41:35 2024 +0800
+
+    add service
+
+[33mcommit 2ec24643d72eac0c0a69eb7323c72438e6aa9195[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Sep 23 18:41:47 2024 +0800
+
+    adjust to read db and upload to GCS and S3
+
+[33mcommit 4486bca47c317a18f84b89f7f724f23003f62397[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Sep 20 16:20:22 2024 +0800
+
+    done
+
+[33mcommit 8011fee30fc5b5582659bc444d44533223e0b203[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Sep 18 18:42:04 2024 +0800
+
+    adjust structure
+
+[33mcommit 42f02fc01fa382ac4b846c5671e9fb8f5f2e8771[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Sep 16 18:45:03 2024 +0800
+
+    create prototype
+
+[33mcommit 5c3cce894f45ecc2ec27c3bc3b12529bece8a0e7[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Sep 13 18:33:45 2024 +0800
+
+    update for gcp
+
+[33mcommit a148c7e6720eac4a015c94f15a80a2735c788e73[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Aug 20 17:20:50 2024 +0800
+
+    修改註解
+
+[33mcommit bcf7f1357c1af6537ad11057bdabbdc9c53f0bb3[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Aug 20 17:12:41 2024 +0800
+
+    修改json順序，上傳新增contentType
+
+[33mcommit 0a6d586821837443b9e2b5237ef5a5e7f587dae5[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Aug 20 14:22:59 2024 +0800
+
+    final修改
+
+[33mcommit 778b6b4c23904102f3fad71d76be909cbfe2bb70[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Mon Aug 19 18:42:52 2024 +0800
+
+    修改邏輯，修改架構
+
+[33mcommit 138a696b8605dd9db47e7dbf7b623c04e5a74342[m
+Author: JEREMY LIN <>
+Date:   Mon Aug 19 07:54:19 2024 +0800
+
+    log config
+
+[33mcommit 24ba465ba7cd0577d8986f3e8597a49313bdf2d0[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Fri Aug 16 18:38:15 2024 +0800
+
+    修改Exception Handle和log
+
+[33mcommit 083d37e233f0612120d071818d1ae326a7af03a4[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Thu Aug 15 18:44:14 2024 +0800
+
+    拿掉new File()
+
+[33mcommit b5ab2b335d031a202b52f1be077eefd1e95454bd[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Thu Aug 15 18:28:51 2024 +0800
+
+    修正bug + 優化
+
+[33mcommit 3f687efa6a38f1e7857cd5997e0aceeae4cfe274[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Wed Aug 14 18:38:53 2024 +0800
+
+    增加主要邏輯
+
+[33mcommit 48b5389d7e895c99db8fbaeb34eae630b65aef1c[m
+Author: cheyulin0222 <cheyulin0222@gmail.com>
+Date:   Tue Aug 13 18:30:49 2024 +0800
+
+    first
+    
+    Signed-off-by: cheyulin0222 <cheyulin0222@gmail.com>
