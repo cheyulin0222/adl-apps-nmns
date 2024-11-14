@@ -38,7 +38,7 @@ public interface NmnsContentUpdatedTimeRepository extends JpaRepository<NmnsCont
                     "INNER JOIN nmns_course_units ncu ON ncuc.unit_id = ncu.unit_id " +
                     "INNER JOIN nmns_course_units_groups ncug ON ncu.group_id = ncug.group_id " +
                     "LEFT JOIN nmns_content_metrics ncm ON ncu.content_id = ncm.content_id " +
-                    "LEFT JOIN nmns_content_info nci_title ON nci_title.content_id = nc.content_id AND nci_title.info_key = 'title' " +
+                    "LEFT JOIN nmns_content_info nci_title ON nci_title.content_id = ncu.content_id AND nci_title.info_key = 'title' " +
                     "WHERE ncut.updated_date = :date " +
                     "GROUP BY ncuc.unit_content_id")
     List<MaterialInfoDTO> findMaterialInfo(
