@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="10 seconds">
+<configuration>
 
     <!-- 名稱 -->
     <contextName>Adl-Apps-Nmns</contextName>
@@ -91,10 +91,13 @@
 
     <!-- CloudWatch Appender -->
     <appender name="AWS_LOGS" class="com.arplanet.adlappnmns.config.CustomAwsLogsAppender">
-        <logGroupName>/aws/ec2/adl-apps-nmns</logGroupName>
+        <logGroupName>/arplanet/nmns/test/data_sync_service</logGroupName>
         <logRegion>ap-southeast-1</logRegion>
-        <maxBatchLogEvents>50</maxBatchLogEvents>
-        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <accessKey>${AWS_ACCESS_KEY}</accessKey>
+        <secretKey>${AWS_SECRET_KEY}</secretKey>
+        <!-- 調整批次設定 -->
+        <maxBatchLogEvents>100</maxBatchLogEvents>
+        <maxFlushTimeMillis>10000</maxFlushTimeMillis>
         <layout>
             <pattern>%msg%n</pattern>
         </layout>

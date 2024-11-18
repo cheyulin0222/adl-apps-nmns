@@ -109,12 +109,12 @@ scp -i [EC2密鑰文件路徑] [本地認證文件路徑] ec2-user@[EC2實例地
 nano ~/.bashrc
 
 # 添加以下內容
-export GOOGLE_APPLICATION_CREDENTIALS="/home/ec2-user/application_default_credentials.json"
-export AWS_ACCESS_KEY=你的AWS訪問密鑰
-export AWS_SECRET_KEY=你的AWS密鑰
-export DB_URL=你的數據庫URL
-export DB_USER=數據庫用戶名
-export DB_PWD=數據庫密碼
+export GOOGLE_APPLICATION_CREDENTIALS="/home/ec2-user/credentials/application_default_credentials.json"
+export AWS_ACCESS_KEY=AWS公鑰
+export AWS_SECRET_KEY=AWS私鑰
+export DB_URL=資料庫URL
+export DB_USER=資料庫用戶名
+export DB_PWD=資料庫密碼
 
 # 重新加載配置
 source ~/.bashrc
