@@ -109,6 +109,7 @@ scp -i [EC2密鑰文件路徑] [本地認證文件路徑] ec2-user@[EC2實例地
 nano ~/.bashrc
 
 # 添加以下內容
+export API_KEY=API密鑰
 export GOOGLE_APPLICATION_CREDENTIALS="/home/ec2-user/credentials/application_default_credentials.json"
 export AWS_ACCESS_KEY=AWS公鑰
 export AWS_SECRET_KEY=AWS私鑰
@@ -176,6 +177,7 @@ Content-Type: application/json
 ```bash
 curl -X POST \
 -H "Content-Type: application/json" \
+-H "X-API-Key: abc123" \
 -d '["2024-10-22"]' \
 http://ec2-54-255-172-173.ap-southeast-1.compute.amazonaws.com:8080/api/task/execute/dates
 ```
@@ -183,6 +185,7 @@ http://ec2-54-255-172-173.ap-southeast-1.compute.amazonaws.com:8080/api/task/exe
 ```bash
 curl -X POST \
 -H "Content-Type: application/json" \
+-H "X-API-Key: abc123" \
 -d '["2024-10-22","2024-10-23","2024-10-24"]' \
 http://ec2-54-255-172-173.ap-southeast-1.compute.amazonaws.com:8080/api/task/execute/dates
 ```
@@ -203,6 +206,7 @@ Content-Type: application/json
 ```bash
 curl -X POST \
 -H "Content-Type: application/json" \
+-H "X-API-Key: abc123" \
 -d '{"startDate": "2024-10-22", "endDate": "2024-10-23"}' \
 http://ec2-54-255-172-173.ap-southeast-1.compute.amazonaws.com:8080/api/task/execute/range
 ```
