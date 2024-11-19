@@ -39,6 +39,6 @@ public class NmnsUserUnitContentSession {
     @Column(name="room_id")
     private String roomId;
 
-    @Column(name="created_date")
-    private String createdDate;
+    @Column(name="service_date")
+    private String serviceDate;
 }

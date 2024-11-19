@@ -29,7 +29,7 @@ public interface NmnsUserUnitContentSessionRepository extends JpaRepository<Nmns
             "nsucs.updated_at as updateTimestamp " +
         "FROM nmns_user_unit_content_session nsucs " +
         "INNER JOIN nmns_user nu ON nsucs.uid = nu.uid " +
-        "WHERE nsucs.created_date = :date ")
+        "WHERE nsucs.service_date = :date ")
     List<InstructionDataLogDTO> findInstructionDataLog(
         @Param("date") String date
     );
@@ -48,7 +48,7 @@ public interface NmnsUserUnitContentSessionRepository extends JpaRepository<Nmns
         "FROM nmns_user_unit_content_session nsucs " +
         "INNER JOIN nmns_user_quiz_session nuqs ON nsucs.session_id = nuqs.session_id " +
         "INNER JOIN nmns_user nu ON nuqs.uid = nu.uid " +
-        "WHERE nsucs.created_date = :date " +
+        "WHERE nsucs.service_date = :date " +
         "GROUP BY nsucs.session_id ")
     List<AssessmentDTO> findAssessment(
             @Param("date") String date

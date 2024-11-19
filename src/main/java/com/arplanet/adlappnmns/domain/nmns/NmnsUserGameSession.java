@@ -40,6 +40,6 @@ public class NmnsUserGameSession {
     @Column(name = "finished_at")
     private Timestamp finishedAt;
 
-    @Column(name = "created_date")
-    private String createdDate;
+    @Column(name = "service_date")
+    private String serviceDate;
 }

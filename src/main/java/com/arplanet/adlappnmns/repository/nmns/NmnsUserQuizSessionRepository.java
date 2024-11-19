@@ -15,7 +15,7 @@ public interface NmnsUserQuizSessionRepository extends JpaRepository<NmnsUserQui
 
     @Query(nativeQuery = true, value =
         "SELECT " +
-            "CONCAT('log-', CONVERT(nuqs.uid, CHAR), '-', CONVERT(nuqs.created_date, CHAR), '-', UUID()) as assessmentLogSn, " +
+            "CONCAT('log-', CONVERT(nuqs.uid, CHAR), '-', CONVERT(nuqs.service_date, CHAR), '-', UUID()) as assessmentLogSn, " +
             "CONVERT(nuqs.session_id, CHAR) as assessmentSn, " +
             "CONVERT(nuqs.question_id, CHAR) as itemSn, " +
             "CONVERT(nuqs.uid, CHAR) as uid, " +
@@ -30,7 +30,7 @@ public interface NmnsUserQuizSessionRepository extends JpaRepository<NmnsUserQui
             "nuqs.updated_at as updateTimestamp " +
         "FROM nmns_user_quiz_session nuqs " +
         "INNER JOIN nmns_user nu ON nuqs.uid = nu.uid " +
-        "WHERE nuqs.created_date = :date ")
+        "WHERE nuqs.service_date = :date ")
     List<AseessmentLogDTO> findAssessmentLog(
             @Param("date") String date
     );

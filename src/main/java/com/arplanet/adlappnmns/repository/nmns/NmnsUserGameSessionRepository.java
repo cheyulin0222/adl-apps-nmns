@@ -56,7 +56,7 @@ public interface NmnsUserGameSessionRepository extends JpaRepository<NmnsUserGam
         "FROM nmns_user_game_session nugs " +
         "INNER JOIN nmns_user_game_rank_session nugrs ON nugs.room_id = nugrs.room_id " +
         "INNER JOIN nmns_user nu ON nugrs.uid = nu.uid " +
-        "WHERE nugs.created_date = :date " +
+        "WHERE nugs.service_date = :date " +
         "AND nugrs.unit_content_id IS NOT NULL " +
         "AND nugrs.session_id IS NOT NULL " +
         "AND nugs.started_at IS NOT NULL ")

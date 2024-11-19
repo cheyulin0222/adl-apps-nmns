@@ -15,7 +15,7 @@ public interface NmnsUserGameRankSessionRepository extends JpaRepository<NmnsUse
 
     @Query(nativeQuery = true, value =
         "SELECT " +
-            "CONCAT('log-', CONVERT(nugrs.uid, CHAR), '-', DATE_FORMAT(nugrs.created_at, '%Y%m%d'), '-', UUID()) as logSn, " +
+            "CONCAT('log-', CONVERT(nugrs.uid, CHAR), '-', DATE_FORMAT(nugrs.service_date, '%Y%m%d'), '-', UUID()) as logSn, " +
             "CONVERT(nugrs.uid, CHAR) as uid, " +
             "CONVERT(nu.sub, CHAR) as openidSub, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
@@ -39,7 +39,7 @@ public interface NmnsUserGameRankSessionRepository extends JpaRepository<NmnsUse
         "INNER JOIN nmns_user_quiz_session nuqs ON nugrs.session_id = nuqs.session_id " +
         "INNER JOIN nmns_quiz_questions nqq ON nuqs.question_id = nqq.question_id " +
         "INNER JOIN nmns_content_info nci_title ON nqq.content_id = nci_title.content_id AND nci_title.info_key = 'title' " +
-        "WHERE nugrs.created_date = :date " +
+        "WHERE nugrs.service_date = :date " +
         "AND nugrs.unit_content_id IS NOT NULL ")
     List<GamePlayingLogDTO> findGamePlayingLog(
         @Param("date") String date

@@ -30,6 +30,6 @@ public class NmnsUserQuizSession {
     @Column(name="started_at")
     private Timestamp startedAt;
 
-    @Column(name="created_date")
-    private String createdDate;
+    @Column(name="service_date")
+    private String serviceDate;
 }

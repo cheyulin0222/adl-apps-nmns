@@ -26,17 +26,14 @@ public class ScheduledTaskService {
     private final LogContext logContext;
 
     // 排程
-    @Scheduled(cron = "0 30 0 * * ?", zone = "Asia/Taipei")
+    @Scheduled(cron = "0 59 10 * * ?", zone = "Asia/Taipei")
     public void performTask() {
-        String date = null;
+        String date = ZonedDateTime.now(ZoneId.of("Asia/Taipei"))
+                .minusDays(1)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         try {
             logContext.setCurrentDate(date);
             logContext.setEventType(EventType.SCHEDULER);
-
-            date = ZonedDateTime.now(ZoneId.of("Asia/Taipei"))
-                    .minusDays(1)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
             nmnsServiceFacade.process(date);
         } catch (Exception e) {
             log.error("{} 排程處理失敗，日期: {}", ERROR_TAG, date, e);

@@ -35,6 +35,6 @@ public class NmnsUserGameRankSession {
     @Column(name="updated_at")
     private Timestamp updatedAt;
 
-    @Column(name="created_date")
-    private String createdDate;
+    @Column(name="service_date")
+    private String serviceDate;
 }
