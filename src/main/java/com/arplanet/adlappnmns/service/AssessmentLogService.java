@@ -1,27 +1,32 @@
 package com.arplanet.adlappnmns.service;
 
-import com.arplanet.adlappnmns.dto.AseessmentLogDTO;
+import com.arplanet.adlappnmns.domain.s3.LogBase;
+import com.arplanet.adlappnmns.domain.s3.SessionInfoLogContext;
+import com.arplanet.adlappnmns.dto.AssessmentLogDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
-import com.arplanet.adlappnmns.repository.nmns.NmnsUserQuizSessionRepository;
+import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
-@Slf4j
 @Service("assessmentLogService")
 @RequiredArgsConstructor
-public class AssessmentLogService extends ContextNmnsServiceBase<AseessmentLogDTO>{
+@Slf4j
+public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
 
-    private final NmnsUserQuizSessionRepository nmnsUserQuizSessionRepository;
+    private final NmnsUserRepository nmnsUserRepository;
     private final Logger logger;
 
     @Override
-    protected void validateData(AseessmentLogDTO data) {
+    protected void validateData(AssessmentLogDTO data) {
+        log.info("進入AssessmentLogService的validateData");
+
         Objects.requireNonNull(data.getAssessmentLogSn(), "assessment_log_sn 不可為 null");
         Objects.requireNonNull(data.getAssessmentSn(), "assessment_sn 不可為 null");
         Objects.requireNonNull(data.getItemSn(), "item_sn 不可為 null");
@@ -38,10 +43,41 @@ public class AssessmentLogService extends ContextNmnsServiceBase<AseessmentLogDT
     }
 
     @Override
-    public List<AseessmentLogDTO> findByDate(String date, ProcessContext processContext) {
+    public List<AssessmentLogDTO> findByDate(String date, ProcessContext processContext) {
+        log.info("進入AssessmentLogService的findByDate");
         try {
-            date = date.replace("-", "");
-            return nmnsUserQuizSessionRepository.findAssessmentLog(date);
+            List<LogBase<SessionInfoLogContext>> sessionInfoList = processContext.getSessionInfoList();
+
+            List<Long> uidList = sessionInfoList.stream()
+                    .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
+                    .map(logBase -> logBase.getContext().getUid())
+                    .distinct()
+                    .toList();
+
+            Map<Long, Map<String, String>> userInfoMap  = nmnsUserRepository.findUserMapByUidIn(uidList);
+
+            return sessionInfoList.stream()
+                    .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
+                    .map(logBase -> {
+                        Long uid = logBase.getContext().getUid();
+                        Map<String, String> userInfo = userInfoMap.get(uid);
+
+                        return AssessmentLogDTO.builder()
+                                .assessmentLogSn(logBase.getLogSn())
+                                .assessmentSn(logBase.getSessionId())
+                                .itemSn(logBase.getContext().getQuestionId())
+                                .uid(String.valueOf(uid))
+                                .openidSub(userInfo != null ? userInfo.get("openidSub") : null)
+                                .userId(userInfo != null ? userInfo.get("userId") : null)
+                                .startTimestamp(logBase.getEventTimestamp())
+                                .endTimestamp(logBase.getEventTimestamp())
+                                .duration(0)
+                                .correctness(String.valueOf(logBase.getContext().getCorrect()))
+                                .userAnswer(logBase.getContext().getOptionId())
+                                .creationTimestamp(logBase.getEventTimestamp())
+                                .updateTimestamp(logBase.getEventTimestamp())
+                                .build();
+                    }).toList();
         } catch (Exception e) {
             logger.error("至資料庫取得資料失敗", e);
             throw new RuntimeException(e);

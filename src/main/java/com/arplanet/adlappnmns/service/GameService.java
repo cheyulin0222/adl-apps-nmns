@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.GameDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserGameSessionRepository;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
@@ -16,7 +17,7 @@ import java.util.Objects;
 @Service("gameService")
 @Slf4j
 @RequiredArgsConstructor
-public class GameService extends SimpleNmnsServiceBase<GameDTO> {
+public class GameService extends NmnsServiceBase<GameDTO> {
 
     private final NmnsUserGameSessionRepository nmnsUserGameSessionRepository;
     private final Logger logger;
@@ -37,7 +38,7 @@ public class GameService extends SimpleNmnsServiceBase<GameDTO> {
     }
 
     @Override
-    public List<GameDTO> findByDate(String date) {
+    public List<GameDTO> findByDate(String date, ProcessContext processContext) {
         try {
             Timestamp start = ServiceUtil.getStartDate(date);
             Timestamp end = ServiceUtil.getEndDate(date);

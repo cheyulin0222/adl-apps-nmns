@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.service;
 
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.enums.ProcessType;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
@@ -7,6 +8,7 @@ import com.arplanet.adlappnmns.record.ZipEntryData;
 import com.arplanet.adlappnmns.repository.S3Repository;
 import com.arplanet.adlappnmns.utils.DataConverter;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +29,10 @@ import static com.arplanet.adlappnmns.utils.ServiceUtil.APPLICATION_JSON;
 
 public abstract class NmnsServiceBase<T> implements NmnsService<T> {
 
-    private final int PACKAGE_SIZE = 5000;
-    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final int PACKAGE_SIZE = 5000;
+    private static final ObjectMapper mapper = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .setSerializationInclusion(JsonInclude.Include.ALWAYS);
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -58,43 +62,56 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     }
 
     @Override
-    public void processData(List<T> dataList) {
+    public List<ZipEntryData> doProcess(String date, ProcessContext processContext) {
+        List<T> dataList = findByDate(date, processContext);
 
-        String date = logContext.getCurrentDate();
+        processData(date, dataList);
+
+        return createZipEntries(dataList, date, processType.getTypeName());
+    }
+
+    @Override
+    public void processData(String date, List<T> dataList) {
+        logger.info("進入processData");
 
         if (processType.isEnableS3Backup()) {
-            dataList.parallelStream().forEach(data -> {
-                logContext.setCurrentDate(date);
-                Map<String, Object> dataMap = dataConverter.convertToMap(data);
-                try {
-                    validateData(data);
+            logger.info("進入processData.isEnableS3Backup");
+            dataList.parallelStream()
+                    .peek(data -> logContext.setCurrentDate(date))
+                    .forEach(data -> {
+                        Map<String, Object> dataMap = dataConverter.convertToMap(data);
+                        try {
+                            validateData(data);
 
-                    saveToS3(data);
-                } catch (NullPointerException e) {
-                    logger.error(processType.getTypeName() + "資料驗證失敗", e, dataMap);
-                    throw new RuntimeException(e);
-                } catch (S3Exception e) {
-                    logger.error("上傳S3失敗", e, dataMap);
-                    throw new RuntimeException(e);
-                } catch (JsonProcessingException e) {
-                    logger.error("資料轉換JSON字串失敗", e, dataMap);
-                    throw new RuntimeException(e);
-                } catch (UnsupportedOperationException e) {
-                    logger.error("上傳到S3的Service沒有Override getId()", e, dataMap);
-                    throw new RuntimeException(e);
-                }
-            });
+                            saveToS3(data);
+                        } catch (NullPointerException e) {
+                            logger.error(processType.getTypeName() + "資料驗證失敗", e, dataMap);
+                            throw new RuntimeException(e);
+                        } catch (S3Exception e) {
+                            logger.error("上傳S3失敗", e, dataMap);
+                            throw new RuntimeException(e);
+                        } catch (JsonProcessingException e) {
+                            logger.error("資料轉換JSON字串失敗", e, dataMap);
+                            throw new RuntimeException(e);
+                        } catch (UnsupportedOperationException e) {
+                            logger.error("上傳到S3的Service沒有Override getId()", e, dataMap);
+                            throw new RuntimeException(e);
+                        }
+                    });
         } else {
-            dataList.parallelStream().forEach(data -> {
-                logContext.setCurrentDate(date);
-                Map<String, Object> dataMap = dataConverter.convertToMap(data);
-                try {
-                    validateData(data);
-                } catch (NullPointerException e) {
-                    logger.error("資料驗證失敗", e, dataMap);
-                    throw new RuntimeException(e);
-                }
-            });
+            logger.info("進入processData.isNotEnableS3Backup");
+            dataList.parallelStream()
+                    .peek(data -> logContext.setCurrentDate(date))
+                    .forEach(data -> {
+                        logger.info("進入processData.isEnableS3Backup");
+                        Map<String, Object> dataMap = dataConverter.convertToMap(data);
+                        try {
+                            validateData(data);
+                        } catch (NullPointerException e) {
+                            logger.error("資料驗證失敗", e, dataMap);
+                            throw new RuntimeException(e);
+                        }
+                    });
         }
     }
 

@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.repository;
 
 import com.arplanet.adlappnmns.log.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -16,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-
+@Repository
 public class S3Repository {
 
     @Autowired

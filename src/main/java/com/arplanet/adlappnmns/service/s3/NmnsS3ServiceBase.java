@@ -1,9 +1,10 @@
 package com.arplanet.adlappnmns.service.s3;
 
 import com.arplanet.adlappnmns.domain.s3.LogBase;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.log.LogContext;
-import com.arplanet.adlappnmns.service.SimpleNmnsServiceBase;
+import com.arplanet.adlappnmns.service.NmnsServiceBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public abstract class NmnsS3ServiceBase<T, L> extends SimpleNmnsServiceBase<T> {
+public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
     @Value("${aws.s3.read.bucket.name}")
     private String bucketName;
@@ -28,10 +29,11 @@ public abstract class NmnsS3ServiceBase<T, L> extends SimpleNmnsServiceBase<T> {
     protected Logger logger;
     
     @Override
-    public List<T> findByDate(String date) {
-        String typeName = processType.getTypeName();
+    public List<T> findByDate(String date, ProcessContext processContext) {
 
-        List<String> filePathList = s3Repository.listFileNames(bucketName, destinationFolder + "edu." + typeName + "/" + date);
+        String serviceFolder = generateServicePath();
+
+        List<String> filePathList = s3Repository.listFileNames(bucketName, destinationFolder + serviceFolder + "/" + date);
 
         // 讀取資料轉成Java物件的List
         List<LogBase<L>> LogBaseList = filePathList.parallelStream()
@@ -85,4 +87,6 @@ public abstract class NmnsS3ServiceBase<T, L> extends SimpleNmnsServiceBase<T> {
     protected abstract String getGroupingKey(LogBase<L> logBase);
 
     protected abstract  List<T> getData(Map<String, List<LogBase<L>>> logBaseGroup, String date);
+
+    protected abstract String generateServicePath();
 }

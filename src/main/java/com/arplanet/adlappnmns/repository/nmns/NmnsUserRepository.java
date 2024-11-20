@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
@@ -35,4 +36,15 @@ public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
             @Param("start") Timestamp start,
             @Param("end") Timestamp end
     );
+
+    @Query(value = "SELECT " +
+            "uid as `key`, " +
+            "JSON_OBJECT(" +
+                "'userId', user_id, " +
+                "'openidSub', sub" +
+            ") as value " +
+            "FROM nmns_user " +
+            "WHERE uid IN :uidList",
+            nativeQuery = true)
+    Map<Long, Map<String, String>> findUserMapByUidIn(@Param("uidList") List<Long> uidList);
 }

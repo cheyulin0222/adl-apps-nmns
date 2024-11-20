@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.service;
 
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.dto.UserInfoDTO;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
@@ -15,7 +16,7 @@ import java.util.Objects;
 @Service("userInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class UserInfoService extends SimpleNmnsServiceBase<UserInfoDTO> {
+public class UserInfoService extends NmnsServiceBase<UserInfoDTO> {
 
     private final NmnsUserRepository nmnsUserRepository;
     private final Logger logger;
@@ -36,7 +37,7 @@ public class UserInfoService extends SimpleNmnsServiceBase<UserInfoDTO> {
     }
 
     @Override
-    public List<UserInfoDTO> findByDate(String date) {
+    public List<UserInfoDTO> findByDate(String date, ProcessContext processContext) {
         try {
             Timestamp start = ServiceUtil.getStartDate(date);
             Timestamp end = ServiceUtil.getEndDate(date);

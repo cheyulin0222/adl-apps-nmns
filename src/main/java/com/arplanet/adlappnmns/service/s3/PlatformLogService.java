@@ -5,7 +5,6 @@ import com.arplanet.adlappnmns.domain.s3.PlatformLogContext;
 import com.arplanet.adlappnmns.dto.PlatformLogDTO;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -13,7 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("platformLogService")
-@Slf4j
 public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, PlatformLogContext> {
 
     @Override
@@ -26,6 +24,12 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+    }
+
+    @Override
+    protected String generateServicePath() {
+        return "edu." + processType.getTypeName();
     }
 
 

@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.MaterialInfoDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.*;
 @Service("materialInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class MaterialInfoService extends SimpleNmnsServiceBase<MaterialInfoDTO> {
+public class MaterialInfoService extends NmnsServiceBase<MaterialInfoDTO> {
 
     private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
     private final Logger logger;
@@ -39,7 +40,7 @@ public class MaterialInfoService extends SimpleNmnsServiceBase<MaterialInfoDTO> 
 
 
     @Override
-    public List<MaterialInfoDTO> findByDate(String date) {
+    public List<MaterialInfoDTO> findByDate(String date, ProcessContext processContext) {
         try {
             date = date.replace("-", "");
             return nmnsContentUpdatedTimeRepository.findMaterialInfo(date);

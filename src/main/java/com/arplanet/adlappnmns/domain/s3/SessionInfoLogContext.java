@@ -1,7 +1,9 @@
 package com.arplanet.adlappnmns.domain.s3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
+@Data
 public class SessionInfoLogContext {
 
     @JsonProperty("course_id")
@@ -86,7 +88,7 @@ public class SessionInfoLogContext {
     private Boolean optionIsCorrect;
 
     @JsonProperty("is_correct")
-    private Boolean isCorrect;
+    private Boolean correct;
 
 
 }

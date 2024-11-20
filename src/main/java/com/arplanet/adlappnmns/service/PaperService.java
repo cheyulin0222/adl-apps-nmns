@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.PaperDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Service("paperService")
 @Slf4j
 @RequiredArgsConstructor
-public class PaperService extends SimpleNmnsServiceBase<PaperDTO> {
+public class PaperService extends NmnsServiceBase<PaperDTO> {
 
     private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
     private final Logger logger;
@@ -36,7 +37,7 @@ public class PaperService extends SimpleNmnsServiceBase<PaperDTO> {
 
 
     @Override
-    public List<PaperDTO> findByDate(String date) {
+    public List<PaperDTO> findByDate(String date, ProcessContext processContext) {
         try {
             date = date.replace("-", "");
             return nmnsContentUpdatedTimeRepository.findPaper(date);

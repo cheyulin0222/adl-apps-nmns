@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.ClassInfoDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserSchoolClassesRepository;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
@@ -16,7 +17,7 @@ import java.util.Objects;
 @Service("classInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class ClassInfoService extends SimpleNmnsServiceBase<ClassInfoDTO> {
+public class ClassInfoService extends NmnsServiceBase<ClassInfoDTO> {
 
     private final NmnsUserSchoolClassesRepository nmnsUserSchoolClassesRepository;
     private final Logger logger;
@@ -37,7 +38,7 @@ public class ClassInfoService extends SimpleNmnsServiceBase<ClassInfoDTO> {
     }
 
     @Override
-    public List<ClassInfoDTO> findByDate(String date) {
+    public List<ClassInfoDTO> findByDate(String date, ProcessContext processContext) {
         try {
             Timestamp start = ServiceUtil.getStartDate(date);
             Timestamp end = ServiceUtil.getEndDate(date);
