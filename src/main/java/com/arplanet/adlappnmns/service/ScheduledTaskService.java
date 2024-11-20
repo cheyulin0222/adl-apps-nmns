@@ -26,7 +26,7 @@ public class ScheduledTaskService {
     private final LogContext logContext;
 
     // 排程
-    @Scheduled(cron = "0 59 10 * * ?", zone = "Asia/Taipei")
+    @Scheduled(cron = "0 30 0 * * ?", zone = "Asia/Taipei")
     public void performTask() {
         String date = ZonedDateTime.now(ZoneId.of("Asia/Taipei"))
                 .minusDays(1)
