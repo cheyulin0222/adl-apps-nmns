@@ -14,7 +14,7 @@ import java.util.*;
 @Slf4j
 @Service("instructionDataLogService")
 @RequiredArgsConstructor
-public class InstructionDataLogService extends NmnsServiceBase<InstructionDataLogDTO> {
+public class InstructionDataLogService extends SimpleNmnsServiceBase<InstructionDataLogDTO> {
 
     private final NmnsUserUnitContentSessionRepository nmnsUserUnitContentSessionRepository;
     private final Logger logger;

@@ -15,7 +15,7 @@ import java.util.Objects;
 @Service("userInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class UserInfoService extends NmnsServiceBase<UserInfoDTO> {
+public class UserInfoService extends SimpleNmnsServiceBase<UserInfoDTO> {
 
     private final NmnsUserRepository nmnsUserRepository;
     private final Logger logger;

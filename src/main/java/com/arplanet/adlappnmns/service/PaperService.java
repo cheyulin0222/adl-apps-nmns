@@ -14,7 +14,7 @@ import java.util.Objects;
 @Service("paperService")
 @Slf4j
 @RequiredArgsConstructor
-public class PaperService extends NmnsServiceBase<PaperDTO> {
+public class PaperService extends SimpleNmnsServiceBase<PaperDTO> {
 
     private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
     private final Logger logger;

@@ -16,7 +16,7 @@ import java.util.Objects;
 @Service("classInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class ClassInfoService extends NmnsServiceBase<ClassInfoDTO> {
+public class ClassInfoService extends SimpleNmnsServiceBase<ClassInfoDTO> {
 
     private final NmnsUserSchoolClassesRepository nmnsUserSchoolClassesRepository;
     private final Logger logger;

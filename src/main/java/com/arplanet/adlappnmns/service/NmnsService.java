@@ -1,8 +1,12 @@
 package com.arplanet.adlappnmns.service;
 
+import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.record.ZipEntryData;
+
 import java.util.List;
 
 public interface NmnsService<T> {
-    List<T> findByDate(String date);
+    List<ZipEntryData> doProcess(String date, ProcessContext processContext);
+//    List<T> findByDate(String date, ProcessContext processContext);
     void processData(List<T> dataList);
 }

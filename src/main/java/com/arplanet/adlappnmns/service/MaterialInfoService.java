@@ -14,7 +14,7 @@ import java.util.*;
 @Service("materialInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class MaterialInfoService extends NmnsServiceBase<MaterialInfoDTO> {
+public class MaterialInfoService extends SimpleNmnsServiceBase<MaterialInfoDTO> {
 
     private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
     private final Logger logger;

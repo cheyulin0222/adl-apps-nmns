@@ -16,7 +16,7 @@ import java.util.Objects;
 @Service("gameService")
 @Slf4j
 @RequiredArgsConstructor
-public class GameService extends NmnsServiceBase<GameDTO> {
+public class GameService extends SimpleNmnsServiceBase<GameDTO> {
 
     private final NmnsUserGameSessionRepository nmnsUserGameSessionRepository;
     private final Logger logger;

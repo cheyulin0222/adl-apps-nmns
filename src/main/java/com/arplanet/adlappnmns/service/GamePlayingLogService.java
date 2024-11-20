@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.GamePlayingLogDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserGameRankSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Slf4j
 @Service("gamePlayingLogService")
 @RequiredArgsConstructor
-public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
+public class GamePlayingLogService extends ContextNmnsServiceBase<GamePlayingLogDTO> {
 
     private final NmnsUserGameRankSessionRepository nmnsUserGameRankSessionRepository;
     private final Logger logger;
@@ -40,7 +41,7 @@ public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
     }
 
     @Override
-    public List<GamePlayingLogDTO> findByDate(String date) {
+    public List<GamePlayingLogDTO> findByDate(String date, ProcessContext processContext) {
         try {
             date = date.replace("-", "");
             return nmnsUserGameRankSessionRepository.findGamePlayingLog(date);

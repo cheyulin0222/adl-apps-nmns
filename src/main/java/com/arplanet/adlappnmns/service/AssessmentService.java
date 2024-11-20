@@ -14,7 +14,7 @@ import java.util.Objects;
 @Slf4j
 @Service("assessmentService")
 @RequiredArgsConstructor
-public class AssessmentService extends NmnsServiceBase<AssessmentDTO> {
+public class AssessmentService extends SimpleNmnsServiceBase<AssessmentDTO> {
 
     private final NmnsUserUnitContentSessionRepository nmnsUserUnitContentSessionRepository;
     private final Logger logger;

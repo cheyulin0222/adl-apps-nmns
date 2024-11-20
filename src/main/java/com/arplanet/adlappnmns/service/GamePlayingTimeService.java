@@ -14,7 +14,7 @@ import java.util.Objects;
 @Slf4j
 @Service("gamePlayingTimeService")
 @RequiredArgsConstructor
-public class GamePlayingTimeService extends NmnsServiceBase<GamePlayingTimeDTO> {
+public class GamePlayingTimeService extends SimpleNmnsServiceBase<GamePlayingTimeDTO> {
 
     private final NmnsUserGameSessionRepository nmnsUserGameSessionRepository;
     private final Logger logger;

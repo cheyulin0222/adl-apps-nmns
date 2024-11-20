@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.AseessmentLogDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserQuizSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Slf4j
 @Service("assessmentLogService")
 @RequiredArgsConstructor
-public class AssessmentLogService extends NmnsServiceBase<AseessmentLogDTO>{
+public class AssessmentLogService extends ContextNmnsServiceBase<AseessmentLogDTO>{
 
     private final NmnsUserQuizSessionRepository nmnsUserQuizSessionRepository;
     private final Logger logger;
@@ -37,7 +38,7 @@ public class AssessmentLogService extends NmnsServiceBase<AseessmentLogDTO>{
     }
 
     @Override
-    public List<AseessmentLogDTO> findByDate(String date) {
+    public List<AseessmentLogDTO> findByDate(String date, ProcessContext processContext) {
         try {
             date = date.replace("-", "");
             return nmnsUserQuizSessionRepository.findAssessmentLog(date);

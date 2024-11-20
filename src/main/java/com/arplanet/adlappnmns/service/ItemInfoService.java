@@ -13,7 +13,7 @@ import java.util.*;
 @Service("itemInfoService")
 @Slf4j
 @RequiredArgsConstructor
-public class ItemInfoService extends NmnsServiceBase<ItemInfoDTO> {
+public class ItemInfoService extends SimpleNmnsServiceBase<ItemInfoDTO> {
 
     private final NmnsContentUpdatedTimeRepository nmnsContentUpdatedTimeRepository;
     private final Logger logger;

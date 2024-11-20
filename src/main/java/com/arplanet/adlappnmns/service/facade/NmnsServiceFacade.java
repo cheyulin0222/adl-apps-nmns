@@ -1,28 +1,33 @@
 package com.arplanet.adlappnmns.service.facade;
 
 import com.arplanet.adlappnmns.config.NmnsBeanFactory;
+import com.arplanet.adlappnmns.domain.s3.LogBase;
+import com.arplanet.adlappnmns.domain.s3.SessionInfoLogContext;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.enums.ProcessType;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.record.ZipEntryData;
 import com.arplanet.adlappnmns.repository.GCSRepository;
+import com.arplanet.adlappnmns.repository.S3Repository;
+import com.arplanet.adlappnmns.repository.nmns.NmnsS3Repository;
 import com.arplanet.adlappnmns.service.NmnsService;
-import com.arplanet.adlappnmns.utils.ServiceUtil;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -33,41 +38,41 @@ import static com.arplanet.adlappnmns.utils.ServiceUtil.*;
 @Slf4j
 public class NmnsServiceFacade {
 
-    private final int PACKAGE_SIZE = 5000;
+    private final ObjectMapper objectMapper;
+    private S3Repository s3Repository;
     private final NmnsBeanFactory nmnsBeanFactory;
     private final GCSRepository gcsRepository;
-    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private final Logger logger;
     private final LogContext logContext;
 
+    @Value("${aws.s3.read.bucket.name}")
+    private String s3BucketName;
+
+    @Value("${aws.s3.read.folder}")
+    private String s3ReadFolder;
+
 
     @Value("${gcs.bucket.name}")
-    private String destinationBucketName;
+    private String gcsDestinationBucketName;
 
     @Value("${gcs.destination.folder}")
-    private String destinationFolder;
-
-
+    private String gcsDestinationFolder;
 
     public void process(String date) {
         try {
             logger.info("教育大數據開始執行");
             logger.info("執行日期: " + date);
 
-            // 從資料庫取得修改資料
-            ConcurrentHashMap<String, List<?>> data = getData(date);
-
-            // 資料處理並上傳S3
-            List<ZipEntryData> zipEntries = processData(data, date);
+            List<ZipEntryData> zipEntries = getData(date);
 
             // 產生zip
             byte[] zipData = createZipFile(zipEntries);
 
             // 產生GCP路徑
-            String destinationPath = getDestinationPath(destinationFolder, date);
+            String destinationPath = getDestinationPath(gcsDestinationFolder, date);
 
             // 上傳GCP
-            gcsRepository.putFile(destinationBucketName, destinationPath, APPLICATION_ZIP, zipData);
+            gcsRepository.putFile(gcsDestinationBucketName, destinationPath, APPLICATION_ZIP, zipData);
 
             logger.info("上傳成功");
         } catch (Exception e) {
@@ -76,90 +81,38 @@ public class NmnsServiceFacade {
         }
     }
 
-    private ConcurrentHashMap<String, List<?>> getData(String date) {
-        logger.info("即將至資料庫取得資料");
-        ConcurrentHashMap<String, List<?>> returnData = new ConcurrentHashMap<>();
+    private List<ZipEntryData> getData(String date) {
 
-        Arrays.stream(ProcessType.values()).parallel().forEach(processType -> {
-            logContext.setCurrentDate(date);
-            NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
+        ProcessContext processContext = getContext(date);
 
-            List<?> dataList = nmnsService.findByDate(date);
-
-            returnData.put(processType.getNmnsService(), dataList);
-
-        });
-
-        logger.info("至資料庫取得資料成功");
-
-        return returnData;
-    }
-
-    private String createFileName(String date, int start, int end, String type) {
-        return date +
-                "_" +
-                start + "-" + end +
-                "_" +
-                type +
-                ".json";
-    }
-
-    public String getDestinationPath(String destinationFolder, String date) {
-        return destinationFolder + date + ".zip";
-    }
-
-    protected ZipEntryData createZipEntryData(String fileName, String content) {
-        byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
-        return new ZipEntryData(fileName, contentBytes);
-    }
-
-    private List<ZipEntryData> processData(ConcurrentHashMap<String, List<?>> data, String date) {
-        logger.info("驗證資料並上傳S3開始");
-        return data.entrySet().parallelStream()
-                .flatMap(entry -> {
+        return Arrays.stream(ProcessType.values()).parallel()
+                .flatMap(processType -> {
                     logContext.setCurrentDate(date);
-                    String serviceType = entry.getKey();
-                    List<?> dataList = entry.getValue();
-                    String typeName = ProcessType.getByNmnsService(serviceType).getTypeName();
-                    NmnsService<Object> nmnsService = nmnsBeanFactory.getNmnsService(serviceType);
+                    NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
 
-                    // 驗證資料，上傳S3
-                    @SuppressWarnings("unchecked")
-                    List<Object> typedList = (List<Object>) dataList;
-                    nmnsService.processData(typedList);
-
-                    // 產生ZIP的json檔
-                    return createZipEntries(dataList, date, typeName).stream();
-
-                })
-                .collect(Collectors.collectingAndThen(Collectors.toList(), result -> {
-                    logger.info("驗證資料並上傳S3成功");
-                    return result;
-                }));
-    }
-
-    private List<ZipEntryData> createZipEntries(List<?> dataList, String date, String typeName) {
-        DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
-
-        if (dataList.isEmpty()) {
-            return List.of(createZipEntryData(createFileName(date, 0, 0, typeName), "[]"));
-        }
-
-        // 每5000筆包成一個json檔
-        return IntStream.range(0, (dataList.size() + PACKAGE_SIZE - 1) / PACKAGE_SIZE)
-                .mapToObj(i -> {
-                    int start = i * PACKAGE_SIZE;
-                    int end = Math.min(start + PACKAGE_SIZE, dataList.size());
-                    List<?> subList = dataList.subList(start, end);
-                    try {
-                        String jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
-                        return createZipEntryData(createFileName(date, start + 1, end, typeName), jsonContent);
-                    } catch (Exception e) {
-                        logger.error("建立ZIP檔案的" + typeName + "Json檔失敗", e);
-                        throw new RuntimeException(e);
-                    }
+                    return nmnsService.doProcess(date, processContext).stream();
                 })
                 .collect(Collectors.toList());
+    }
+    
+    private ProcessContext getContext(String date) {
+        List<String> sessionInfoFileNameList = s3Repository.listFileNames(s3BucketName, s3ReadFolder + "session.info/" + date);
+
+        // 讀取資料轉成Java物件的List
+        List<LogBase<SessionInfoLogContext>> sessionInfoList = sessionInfoFileNameList.parallelStream()
+                .flatMap(filePath -> {
+                    logContext.setCurrentDate(date);
+                    return readFile(filePath).stream();
+                })
+                .toList();
+
+        return ProcessContext.builder()
+                .sessionInfoList(sessionInfoList)
+                .build();
+    }
+
+    private String getDestinationPath(String destinationFolder, String date) {
+        return destinationFolder + date + ".zip";
     }
 
     private byte[] createZipFile(List<ZipEntryData> zipEntries) {
@@ -184,8 +137,33 @@ public class NmnsServiceFacade {
             logger.error("建立ZIP檔案失敗", e);
             throw new RuntimeException(e);
         }
-
     }
 
+    private List<LogBase<SessionInfoLogContext>> readFile(String filePath) {
+        String content = null;
+        try {
+            content = s3Repository.readFile(s3BucketName, filePath);
+            String[] dataList = content.split("\n");
+            List<LogBase<SessionInfoLogContext>> result = new ArrayList<>();
 
+            for (String data : dataList) {
+                if (!data.trim().isEmpty()) {
+                    result.add(objectMapper.readValue(data, new TypeReference<>() {}));
+                }
+            }
+            return result;
+
+        } catch (JsonProcessingException e) {
+            HashMap<String, Object> payload = new HashMap<>();
+            payload.put("file_path", filePath);
+            payload.put("content", content);
+            logger.error("至S3讀取資料，JSON解析失敗", e, payload);
+            throw new RuntimeException(e);
+        } catch (S3Exception e) {
+            HashMap<String, Object> payload = new HashMap<>();
+            payload.put("file_path", filePath);
+            logger.error("至S3讀取資料失敗", e, payload);
+            throw new RuntimeException(e);
+        }
+    }
 }
