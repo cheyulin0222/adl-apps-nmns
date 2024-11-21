@@ -25,7 +25,7 @@ public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
             "NULLIF(GROUP_CONCAT(DISTINCT CONVERT(nust.title, CHAR) SEPARATOR ','), '') as identity, " +
             "null as citySsoSub, " +
             "nu.created_at as creationTimestamp, " +
-            "GREATEST(nu.updated_at, MAX(nust.updated_at)) as updateTimestamp " +
+            "COALESCE(GREATEST(nu.updated_at, MAX(nust.updated_at)), nu.updated_at) as updateTimestamp " +
         "FROM nmns_user nu " +
         "LEFT JOIN nmns_user_school_titles nust ON nu.uid = nust.uid " +
         "WHERE nu.updated_at BETWEEN :start AND :end " +

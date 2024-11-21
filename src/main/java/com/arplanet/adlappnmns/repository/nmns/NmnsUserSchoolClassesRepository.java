@@ -37,7 +37,7 @@ public interface NmnsUserSchoolClassesRepository extends JpaRepository<NmnsUserS
             "null as classNum, " +
             "null as classId, " +
             "nusc.created_at as creationTimestamp, " +
-            "GREATEST(nusc.updated_at, nu.updated_at, ns.updated_at) as updateTimestamp " +
+            "COALESCE(GREATEST(nusc.updated_at, nu.updated_at, ns.updated_at), nusc.updated_at) as updateTimestamp " +
         "FROM nmns_user_school_classes nusc " +
         "INNER JOIN nmns_user nu ON nusc.uid = nu.uid " +
         "INNER JOIN nmns_schools ns ON nusc.school_id = ns.school_id " +
