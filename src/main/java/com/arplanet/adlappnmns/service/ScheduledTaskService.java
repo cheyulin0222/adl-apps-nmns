@@ -26,7 +26,7 @@ public class ScheduledTaskService {
     private final LogContext logContext;
 
     // 排程
-    @Scheduled(cron = "0 30 0 * * ?", zone = "Asia/Taipei")
+    @Scheduled(cron = "0 10 11 * * ?", zone = "Asia/Taipei")
     public void performTask() {
         String date = ZonedDateTime.now(ZoneId.of("Asia/Taipei"))
                 .minusDays(1)
@@ -34,7 +34,7 @@ public class ScheduledTaskService {
         try {
             logContext.setCurrentDate(date);
             logContext.setEventType(EventType.SCHEDULER);
-            nmnsServiceFacade.process(date);
+            nmnsServiceFacade.process(date, false);
         } catch (Exception e) {
             log.error("{} 排程處理失敗，日期: {}", ERROR_TAG, date, e);
         } finally {
@@ -43,7 +43,7 @@ public class ScheduledTaskService {
     }
 
     // 手動觸發
-    public ProcessResult processDates(List<String> dates) {
+    public ProcessResult processDates(List<String> dates, boolean isFirstDate) {
         List<String> successDates = Collections.synchronizedList(new ArrayList<>());
         List<String> failedDates = Collections.synchronizedList(new ArrayList<>());
 
@@ -52,7 +52,7 @@ public class ScheduledTaskService {
                 logContext.setCurrentDate(date);
                 logContext.setEventType(EventType.MANUAL);
 
-                nmnsServiceFacade.process(date);
+                nmnsServiceFacade.process(date, isFirstDate);
 
                 successDates.add(date);
             } catch (Exception e) {
@@ -68,5 +68,4 @@ public class ScheduledTaskService {
                 .failedDates(failedDates)
                 .build();
     }
-
 }

@@ -8,13 +8,16 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 public class S3Repository {
@@ -102,5 +105,41 @@ public class S3Repository {
                 .build();
         // 送出請求
         s3Client.putObject(request, RequestBody.fromBytes(content));
+    }
+
+    public Map<String, String> readZipFileToMap(String bucketName, String fileName) {
+        GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .build();
+
+        try (ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(request);
+             ZipInputStream zipStream = new ZipInputStream(responseInputStream)) {
+
+            Map<String, String> fileContents = new HashMap<>();
+            ZipEntry entry;
+
+            while ((entry = zipStream.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    fileContents.put(entry.getName(), readZipEntry(zipStream));
+                }
+                zipStream.closeEntry();
+            }
+
+            return fileContents;
+
+        } catch (Exception e) {
+            HashMap<String, Object> payload = new HashMap<>();
+            payload.put("bucket_name", bucketName);
+            payload.put("file_path", fileName);
+            logger.error("嘗試從s3讀取zip檔案時發生錯誤", e, payload);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String readZipEntry(ZipInputStream zipStream) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        }
     }
 }

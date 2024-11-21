@@ -6,6 +6,7 @@ import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.record.ZipEntryData;
 import com.arplanet.adlappnmns.repository.GCSRepository;
+import com.arplanet.adlappnmns.repository.LocalRepository;
 import com.arplanet.adlappnmns.service.NmnsService;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -36,6 +38,7 @@ public class NmnsServiceFacade {
     private final int PACKAGE_SIZE = 5000;
     private final NmnsBeanFactory nmnsBeanFactory;
     private final GCSRepository gcsRepository;
+    private final LocalRepository localRepository;
     private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private final Logger logger;
     private final LogContext logContext;
@@ -45,17 +48,20 @@ public class NmnsServiceFacade {
     private String destinationBucketName;
 
     @Value("${gcs.destination.folder}")
-    private String destinationFolder;
+    private String gcsDestinationFolder;
+
+    @Value("${local.destination.folder}")
+    private String localDestinationFolder;
 
 
 
-    public void process(String date) {
+    public void process(String date, boolean isFirstDate) {
         try {
             logger.info("教育大數據開始執行");
             logger.info("執行日期: " + date);
 
             // 從資料庫取得修改資料
-            ConcurrentHashMap<String, List<?>> data = getData(date);
+            ConcurrentHashMap<String, List<?>> data = getData(date, isFirstDate);
 
             // 資料處理並上傳S3
             List<ZipEntryData> zipEntries = processData(data, date);
@@ -64,10 +70,10 @@ public class NmnsServiceFacade {
             byte[] zipData = createZipFile(zipEntries);
 
             // 產生GCP路徑
-            String destinationPath = getDestinationPath(destinationFolder, date);
+            String destinationPath = getDestinationPath(date, isFirstDate);
 
             // 上傳GCP
-            gcsRepository.putFile(destinationBucketName, destinationPath, APPLICATION_ZIP, zipData);
+            putFile(destinationPath, zipData, isFirstDate);
 
             logger.info("上傳成功");
         } catch (Exception e) {
@@ -76,18 +82,25 @@ public class NmnsServiceFacade {
         }
     }
 
-    private ConcurrentHashMap<String, List<?>> getData(String date) {
+    private ConcurrentHashMap<String, List<?>> getData(String date, boolean isFirstDate) {
         logger.info("即將至資料庫取得資料");
+
         ConcurrentHashMap<String, List<?>> returnData = new ConcurrentHashMap<>();
 
-        Arrays.stream(ProcessType.values()).parallel().forEach(processType -> {
+        // 取得service stream
+        Stream<ProcessType> processTypeStream = Arrays.stream(ProcessType.values());
+
+        // 若要收集第一天的靜態資料，排除非靜態資料
+        if (isFirstDate) {
+            processTypeStream = processTypeStream.filter(ProcessType::isStaticData);
+        }
+
+        // 取得資料
+        processTypeStream.parallel().forEach(processType -> {
             logContext.setCurrentDate(date);
             NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
-
             List<?> dataList = nmnsService.findByDate(date);
-
             returnData.put(processType.getNmnsService(), dataList);
-
         });
 
         logger.info("至資料庫取得資料成功");
@@ -104,8 +117,11 @@ public class NmnsServiceFacade {
                 ".json";
     }
 
-    public String getDestinationPath(String destinationFolder, String date) {
-        return destinationFolder + date + ".zip";
+    public String getDestinationPath(String date, boolean isFirstDate) {
+        if (isFirstDate) {
+            return localDestinationFolder + date + ".zip";
+        }
+        return gcsDestinationFolder + date + ".zip";
     }
 
     protected ZipEntryData createZipEntryData(String fileName, String content) {
@@ -184,8 +200,12 @@ public class NmnsServiceFacade {
             logger.error("建立ZIP檔案失敗", e);
             throw new RuntimeException(e);
         }
-
     }
 
-
+    private void putFile(String destinationPath, byte[] zipData, boolean isFirstDate) {
+        if (isFirstDate) {
+            localRepository.putFile(destinationPath, APPLICATION_ZIP, zipData);
+        }
+        gcsRepository.putFile(destinationBucketName, destinationPath, APPLICATION_ZIP, zipData);
+    }
 }

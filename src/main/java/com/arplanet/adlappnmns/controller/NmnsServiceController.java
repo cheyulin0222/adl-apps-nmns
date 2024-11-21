@@ -28,7 +28,8 @@ public class NmnsServiceController {
     @PostMapping("/execute/dates")
     public ResponseEntity<String> executeByDates(
             @RequestHeader("X-API-Key") String requestKey,
-            @RequestBody List<String> dates) {
+            @RequestBody List<String> dates,
+            @RequestParam(defaultValue = "false") boolean isFirstDate) {
 
         validateApiKey(requestKey);
 
@@ -36,7 +37,7 @@ public class NmnsServiceController {
             return ResponseEntity.badRequest().body("請提供至少一個日期");
         }
 
-        ProcessResult processResult = scheduledTaskService.processDates(dates);
+        ProcessResult processResult = scheduledTaskService.processDates(dates, isFirstDate);
         if (processResult.getFailedDates().isEmpty()) {
             return ResponseEntity.ok("任務成功執行，處理的日期: " + String.join(", ", dates));
         } else {
@@ -52,14 +53,15 @@ public class NmnsServiceController {
     @PostMapping("/execute/range")
     public ResponseEntity<String> executeByRange(
             @RequestHeader("X-API-Key") String requestKey,
-            @RequestBody DateRange dateRange) {
+            @RequestBody DateRange dateRange,
+            @RequestParam(defaultValue = "false") boolean isFirstDate) {
 
         validateApiKey(requestKey);
 
         List<String> dates = generateDateList(dateRange.getStartDate(), dateRange.getEndDate());
 
 
-        ProcessResult processResult = scheduledTaskService.processDates(dates);
+        ProcessResult processResult = scheduledTaskService.processDates(dates, isFirstDate);
 
         if (processResult.getFailedDates().isEmpty()) {
             return ResponseEntity.ok("任務成功執行，處理的日期: " + String.join(", ", dates));
