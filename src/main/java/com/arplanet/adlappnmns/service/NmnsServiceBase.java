@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -25,8 +26,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.arplanet.adlappnmns.enums.ProcessType.ASSESSMENT_LOG;
 import static com.arplanet.adlappnmns.utils.ServiceUtil.APPLICATION_JSON;
 
+@Slf4j
 public abstract class NmnsServiceBase<T> implements NmnsService<T> {
 
     private static final int PACKAGE_SIZE = 5000;
@@ -72,10 +75,11 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
 
     @Override
     public void processData(String date, List<T> dataList) {
-        logger.info("進入processData");
 
         if (processType.isEnableS3Backup()) {
-            logger.info("進入processData.isEnableS3Backup");
+            if (ASSESSMENT_LOG.name().equals(processType.name())) {
+                log.info("ASSESSMENT_LOG進入enableS3Backup");
+            }
             dataList.parallelStream()
                     .peek(data -> logContext.setCurrentDate(date))
                     .forEach(data -> {
@@ -99,11 +103,12 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                         }
                     });
         } else {
-            logger.info("進入processData.isNotEnableS3Backup");
+            if (ASSESSMENT_LOG.name().equals(processType.name())) {
+                log.info("ASSESSMENT_LOG進入NotenableS3Backup");
+            }
             dataList.parallelStream()
                     .peek(data -> logContext.setCurrentDate(date))
                     .forEach(data -> {
-                        logger.info("進入processData.isEnableS3Backup");
                         Map<String, Object> dataMap = dataConverter.convertToMap(data);
                         try {
                             validateData(data);

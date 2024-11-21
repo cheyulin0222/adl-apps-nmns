@@ -7,6 +7,7 @@ import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.service.NmnsServiceBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -14,7 +15,9 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.arplanet.adlappnmns.enums.ProcessType.SESSION_INFO_LOG;
 
+@Slf4j
 public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
     @Value("${aws.s3.read.bucket.name}")
@@ -36,19 +39,32 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
         List<String> filePathList = s3Repository.listFileNames(bucketName, destinationFolder + serviceFolder + "/" + date);
 
         // 讀取資料轉成Java物件的List
-        List<LogBase<L>> LogBaseList = filePathList.parallelStream()
+        List<LogBase<L>> logBaseList = filePathList.parallelStream()
                 .flatMap(filePath -> {
                     logContext.setCurrentDate(date);
                     return readFile(filePath).stream();
                 })
                 .toList();
 
+        if (SESSION_INFO_LOG.name().equals(processType.name())) {
+            logBaseList.forEach(element -> {
+                log.info("actionType={}", element.getActionType());
+            });
+        }
+
         // 依照各個service資料的ID組成一個Map
-        Map<String, List<LogBase<L>>> logBaseGroup = LogBaseList.parallelStream()
+        Map<String, List<LogBase<L>>> logBaseGroup = logBaseList.parallelStream()
                 .collect(Collectors.groupingBy(logBase -> {
                     logContext.setCurrentDate(date);
                     return getGroupingKey(logBase);
                 }));
+
+        if (SESSION_INFO_LOG.name().equals(processType.name())) {
+            logBaseGroup.entrySet().forEach(entry -> {
+                log.info("group_key={}", entry.getKey());
+                log.info("group_actionType={}", entry.getValue().get(0).getActionType());
+            });
+        }
 
         return getData(logBaseGroup, date);
 

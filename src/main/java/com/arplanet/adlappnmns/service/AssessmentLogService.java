@@ -48,6 +48,8 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
         try {
             List<LogBase<SessionInfoLogContext>> sessionInfoList = processContext.getSessionInfoList();
 
+            log.info("sessionInfoList.size={}", sessionInfoList.size());
+
             List<Long> uidList = sessionInfoList.stream()
                     .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
                     .map(logBase -> logBase.getContext().getUid())
@@ -56,11 +58,27 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
 
             Map<Long, Map<String, String>> userInfoMap  = nmnsUserRepository.findUserMapByUidIn(uidList);
 
+            log.info("成功拉到uid資料");
+
             return sessionInfoList.stream()
                     .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
                     .map(logBase -> {
                         Long uid = logBase.getContext().getUid();
                         Map<String, String> userInfo = userInfoMap.get(uid);
+
+                        log.info("assessmentLogSn={}", logBase.getLogSn());
+                        log.info("assessmentSn={}", logBase.getSessionId());
+                        log.info("uid={}", uid);
+                        log.info("openidSub={}", userInfo.get("openidSub"));
+                        log.info("userId={}", userInfo.get("userId"));
+                        log.info("startTimestamp={}", logBase.getEventTimestamp());
+                        log.info("endTimestamp={}", logBase.getEventTimestamp());
+                        log.info("correctness={}", logBase.getContext().getCorrect());
+                        log.info("userAnswer={}", logBase.getContext().getOptionId());
+                        log.info("creationTimestamp={}", logBase.getEventTimestamp());
+                        log.info("updateTimestamp={}", logBase.getEventTimestamp());
+
+
 
                         return AssessmentLogDTO.builder()
                                 .assessmentLogSn(logBase.getLogSn())
