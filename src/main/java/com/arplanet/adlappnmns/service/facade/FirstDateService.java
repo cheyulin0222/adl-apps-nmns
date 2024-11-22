@@ -55,15 +55,16 @@ public class FirstDateService {
         List<String> filePathList = localRepository.listFileNames(localDestinationFolder);
 
         Map<ProcessType, TypeData<?>> typeDataMap = new EnumMap<>(ProcessType.class);
-        typeDataMap.put(ProcessType.USER_INFO, new TypeData<>(new ConcurrentLinkedQueue<UserInfoDTO>(), new TypeReference<List<UserInfoDTO>>() {}));
-        typeDataMap.put(ProcessType.MATERIAL_INFO, new TypeData<>(new ConcurrentLinkedQueue<MaterialInfoDTO>(), new TypeReference<List<MaterialInfoDTO>>() {}));
-        typeDataMap.put(ProcessType.CLASS_INFO, new TypeData<>(new ConcurrentLinkedQueue<ClassInfoDTO>(), new TypeReference<List<ClassInfoDTO>>() {}));
-        typeDataMap.put(ProcessType.ITEM_INFO, new TypeData<>(new ConcurrentLinkedQueue<ItemInfoDTO>(), new TypeReference<List<ItemInfoDTO>>() {}));
-        typeDataMap.put(ProcessType.PAPER, new TypeData<>(new ConcurrentLinkedQueue<PaperDTO>(), new TypeReference<List<PaperDTO>>() {}));
-
-
+        typeDataMap.put(ProcessType.USER_INFO, new TypeData<>(new ConcurrentLinkedQueue<>(), new TypeReference<>() {}));
+        typeDataMap.put(ProcessType.MATERIAL_INFO, new TypeData<>(new ConcurrentLinkedQueue<>(), new TypeReference<>() {}));
+        typeDataMap.put(ProcessType.CLASS_INFO, new TypeData<>(new ConcurrentLinkedQueue<>(), new TypeReference<>() {}));
+        typeDataMap.put(ProcessType.ITEM_INFO, new TypeData<>(new ConcurrentLinkedQueue<>(), new TypeReference<>() {}));
+        typeDataMap.put(ProcessType.PAPER, new TypeData<>(new ConcurrentLinkedQueue<>(), new TypeReference<>() {}));
 
         filePathList.parallelStream().forEach(filePath -> {
+            // 讀取每天的zip，產生map
+            // json檔案名稱為key
+            // 內容為value
             Map<String, String> content = localRepository.readZipFile(filePath);
 
             content.entrySet().parallelStream().forEach(entry -> {
