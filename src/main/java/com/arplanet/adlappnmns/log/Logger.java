@@ -56,6 +56,10 @@ public class Logger {
         log(LogLevel.ERROR, message, new HashMap<>(0), errorData);
     }
 
+    public void error(String message, Map<String, Object> payload) {
+        log(LogLevel.ERROR, message, payload, new HashMap<>(0));
+    }
+
     public void error(String message, Throwable error, Map<String, Object> payload) {
         Map<String, Object> errorData = new HashMap<>();
         errorData.put("error", error.getMessage());

@@ -34,9 +34,20 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
         try {
             logs = entry.getValue();
 
-            if (logs.size() > 1) {
-                LogBase<PlatformLogContext> login = findLogByActionType(logs, "login");
-                LogBase<PlatformLogContext> logout = findLogByActionType(logs, "logout");
+            if (logs.size() == 2 ) {
+                LogBase<PlatformLogContext> login;
+                LogBase<PlatformLogContext> logout;
+                try {
+                    login = findLogByActionType(logs, "login");
+                    logout = findLogByActionType(logs, "logout");
+                } catch (Exception e) {
+                    HashMap<String, Object> payload = new HashMap<>();
+                    payload.put("sessionId", entry.getKey());
+                    payload.put("logsSize", logs.size());
+                    payload.put("logs", logs);
+                    logger.error(e.getMessage(), e, payload);
+                    return null;
+                }
 
                 // 排除Postman沒有值的狀況
                 if (login.getContext().getPlatformsTrackingPrior() == null) {
@@ -55,7 +66,15 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
                 Timestamp expiredTimestamp = login.getContext().getExpiredTimestamp();
 
                 return buildPlatformLogDTO(login, expiredTimestamp);
+            } else if (logs.size() > 2) {
+                HashMap<String, Object> payload = new HashMap<>();
+                payload.put("sessionId", entry.getKey());
+                payload.put("logsSize", logs.size());
+                payload.put("logs", logs);
+                logger.error("platform_log 資料筆數超過 2 筆",  payload);
+                return null;
             }
+
             return null;
         } catch (Exception e) {
             HashMap<String, Object> payload = new HashMap<>();
@@ -113,11 +132,16 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
 
     private LogBase<PlatformLogContext> findLogByActionType(List<LogBase<PlatformLogContext>> logs, String actionType) {
         return logs.stream()
-                .filter(logBase -> actionType.equals(logBase.getActionType()))
+                // 新加了欄位success，為了兼容新舊資料
+                // 排除sucess 為 true 或 null 皆可
+                .filter(logBase -> actionType.equals(logBase.getActionType())
+                        && !Boolean.FALSE.equals(logBase.getContext().getSuccess()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No " + actionType + " event found"));
+                .orElseThrow(() -> new NoSuchElementException("Platform_log 找不到 " + actionType + " 資料"));
     }
 
     @Override
     protected void validateData(PlatformLogDTO data) {}
+
+
 }

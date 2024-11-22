@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 @Data
 public class PlatformLogContext {
 
+    private Boolean success;
+
     @JsonProperty("user_id")
     private String userId;
 
