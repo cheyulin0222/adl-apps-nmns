@@ -97,9 +97,18 @@ public class Logger {
             String jsonLog = objectMapper.writeValueAsString(logMessage);
 
             switch (level) {
-                case INFO -> log.info("{} | {}", message, jsonLog);
-                case ERROR -> log.error("{} | {}", message, jsonLog);
-                default -> log.debug("{} | {}", message, jsonLog);
+                case INFO -> {
+                    log.info(message);
+                    log.info(jsonLog);
+                }
+                case ERROR -> {
+                    log.error(message);
+                    log.error(jsonLog);
+                }
+                default -> {
+                    log.debug(message);
+                    log.debug(jsonLog);
+                }
             }
         } catch (JsonProcessingException e) {
             log.error("Error creating JSON log", e);

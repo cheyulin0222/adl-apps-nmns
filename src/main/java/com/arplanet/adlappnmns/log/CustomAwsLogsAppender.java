@@ -1,12 +1,8 @@
-package com.arplanet.adlappnmns.config;
+package com.arplanet.adlappnmns.log;
 
 import ca.pjer.logback.AwsLogsAppender;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

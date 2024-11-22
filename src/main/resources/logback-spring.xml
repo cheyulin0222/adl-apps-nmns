@@ -90,7 +90,7 @@
     </appender>
 
     <!-- CloudWatch Appender -->
-    <appender name="AWS_LOGS" class="com.arplanet.adlappnmns.config.CustomAwsLogsAppender">
+    <appender name="AWS_LOGS" class="com.arplanet.adlappnmns.log.CustomAwsLogsAppender">
         <logGroupName>/arplanet/nmns/test/data_sync_service</logGroupName>
         <logRegion>ap-southeast-1</logRegion>
         <accessKey>${AWS_ACCESS_KEY}</accessKey>
@@ -99,7 +99,7 @@
         <maxBatchLogEvents>100</maxBatchLogEvents>
         <maxFlushTimeMillis>10000</maxFlushTimeMillis>
         <layout>
-            <pattern>%msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} %uuid %level %msg%n</pattern>
         </layout>
     </appender>
 
