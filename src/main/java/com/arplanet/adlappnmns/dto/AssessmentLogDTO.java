@@ -4,9 +4,13 @@ import com.arplanet.adlappnmns.serializer.CustomTimestampSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
+import lombok.Data;
 
 import java.sql.Timestamp;
 
+@Builder
+@Data
 @JsonPropertyOrder({
         "assessment_log_sn",
         "assessment_sn",
@@ -22,47 +26,45 @@ import java.sql.Timestamp;
         "creation_timestamp",
         "update_timestamp"
 })
-public interface AseessmentLogDTO {
+public class AssessmentLogDTO {
 
     @JsonProperty("assessment_log_sn")
-    String getAssessmentLogSn();
+    private String assessmentLogSn;
 
     @JsonProperty("assessment_sn")
-    String getAssessmentSn();
+    private String assessmentSn;
 
     @JsonProperty("item_sn")
-    String getItemSn();
+    private String itemSn;
 
-    Long getUid();
+    private String uid;
 
     @JsonProperty("openid_sub")
-    String getOpenidSub();
+    private String openidSub;
 
     @JsonProperty("user_id")
-    String getUserId();
+    private String userId;
 
     @JsonProperty("start_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getStartTimestamp();
+    private Timestamp startTimestamp;
 
     @JsonProperty("end_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getEndTimestamp();
+    private Timestamp endTimestamp;
 
-    Integer getDuration();
+    private Integer duration;
 
-    String getCorrectness();
+    private String correctness;
 
     @JsonProperty("user_answer")
-    String getUserAnswer();
+    private String userAnswer;
 
     @JsonProperty("creation_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getCreationTimestamp();
+    private Timestamp creationTimestamp;
 
     @JsonProperty("update_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getUpdateTimestamp();
+    private Timestamp updateTimestamp;
 }
-
-

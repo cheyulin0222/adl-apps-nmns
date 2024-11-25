@@ -1,6 +1,7 @@
 package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.AssessmentDTO;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserUnitContentSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 
 @Slf4j
@@ -33,12 +36,12 @@ public class AssessmentService extends NmnsServiceBase<AssessmentDTO> {
     }
 
     @Override
-    public List<AssessmentDTO> findByDate(String date) {
+    public List<AssessmentDTO> findByDate(String date, ProcessContext processContext) {
         try {
             date = date.replace("-", "");
             return nmnsUserUnitContentSessionRepository.findAssessment(date);
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

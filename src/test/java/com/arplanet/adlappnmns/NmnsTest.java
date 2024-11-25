@@ -25,12 +25,9 @@ public class NmnsTest {
     @Autowired
     private ScheduledTaskService scheduledTaskService;
 
-    @Autowired
-    private Environment env;
-
     @Test
     void test() {
-        String date = "2024-04-26";
+        String date = "2024-11-19";
         List<String> dateList = new ArrayList<>();
         dateList.add(date);
 
@@ -40,8 +37,8 @@ public class NmnsTest {
 
     @Test
     void testLongTerm() {
-        String sDate = "2023-12-11";
-        String eDate = "2024-11-19";
+        String sDate = "2023-11-01";
+        String eDate = "2024-11-04";
         List<String> dateList = generateDateList(sDate, eDate);
 
         scheduledTaskService.processDates(dateList);

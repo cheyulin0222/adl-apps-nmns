@@ -1,12 +1,13 @@
 package com.arplanet.adlappnmns.service.s3;
 
 import com.arplanet.adlappnmns.domain.s3.LogBase;
+import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.log.LogContext;
-import com.arplanet.adlappnmns.repository.nmns.NmnsS3Repository;
 import com.arplanet.adlappnmns.service.NmnsServiceBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -15,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
+@Slf4j
 public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
     @Value("${aws.s3.read.bucket.name}")
@@ -24,37 +26,30 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
     private String destinationFolder;
 
     @Autowired
-    private NmnsS3Repository nmnsS3Repository;
-    @Autowired
     protected LogContext logContext;
     @Autowired
     protected Logger logger;
     
     @Override
-    public List<T> findByDate(String date) {
-        String typeName = getTypeName();
-        List<String> filePathList = nmnsS3Repository.listFileNames(bucketName, destinationFolder + "edu." + typeName + "/" + date);
+    public List<T> findByDate(String date, ProcessContext processContext) {
+
+        String serviceFolder = generateServicePath();
+
+        List<String> filePathList = s3Repository.listFileNames(bucketName, destinationFolder + serviceFolder + "/" + date);
 
         // 讀取資料轉成Java物件的List
-        List<LogBase<L>> LogBaseList = filePathList.parallelStream()
+        List<LogBase<L>> logBaseList = filePathList.parallelStream()
                 .flatMap(filePath -> {
                     logContext.setCurrentDate(date);
                     return readFile(filePath).stream();
                 })
                 .toList();
 
-        // 依照各個service資料的ID組成一個Map
-        Map<String, List<LogBase<L>>> logBaseGroup = LogBaseList.parallelStream()
-                .collect(Collectors.groupingBy(logBase -> {
-                    logContext.setCurrentDate(date);
-                    return getGroupingKey(logBase);
-                }));
 
-        return getData(logBaseGroup, date);
+
+        return getData(logBaseList, date);
 
     }
-
-
 
     private List<LogBase<L>> readFile(String filePath) {
         String content = null;
@@ -86,7 +81,7 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
     protected abstract TypeReference<LogBase<L>> getLogBaseTypeReference();
 
-    protected abstract String getGroupingKey(LogBase<L> logBase);
+    protected abstract  List<T> getData(List<LogBase<L>> logBaseList, String date);
 
-    protected abstract  List<T> getData(Map<String, List<LogBase<L>>> logBaseGroup, String date);
+    protected abstract String generateServicePath();
 }

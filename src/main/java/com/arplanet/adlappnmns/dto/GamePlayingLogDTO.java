@@ -1,13 +1,16 @@
 package com.arplanet.adlappnmns.dto;
 
 import com.arplanet.adlappnmns.serializer.CustomTimestampSerializer;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
+import lombok.Data;
 
 import java.sql.Timestamp;
 
+@Builder
+@Data
 @JsonPropertyOrder({
         "log_sn",
         "uid",
@@ -29,82 +32,64 @@ import java.sql.Timestamp;
         "creation_timestamp",
         "update_timestamp"
 })
-public interface GamePlayingLogDTO {
+public class GamePlayingLogDTO {
 
     @JsonProperty("log_sn")
-    String getLogSn();
+    private String logSn;
 
     @JsonProperty("uid")
-    String getUid();
+    private String uid;
 
     @JsonProperty("openid_sub")
-    String getOpenidSub();
+    private String openidSub;
 
     @JsonProperty("user_id")
-    String getUserId();
+    private String userId;
 
     @JsonProperty("game_sn")
-    String getGameSn();
+    private String gameSn;
 
     @JsonProperty("correctness")
-    String getCorrectness();
+    private String correctness;
 
     @JsonProperty("content")
-    String getContent();
+    private String content;
 
     @JsonProperty("reward")
-    Integer getReward();
+    private Integer reward;
 
     @JsonProperty("score")
-    Integer getScore();
+    private Integer score;
 
     @JsonProperty("click_num")
-    Integer getClickNum();
+    private Integer clickNum;
 
     @JsonProperty("play_num")
-    Integer getPlayNum();
-
-    @JsonIgnore
-    Integer getPass();
-
-    @JsonIgnore
-    Integer getBackToAdl();
-
-    @JsonIgnore
-    Integer getSupportUsage();
+    private Integer playNum;
 
     @JsonProperty("pass")
-    default Boolean isPass() {
-        Integer pass = getPass();
-        return pass != null && pass == 1;
-    }
+    private Boolean pass;
 
     @JsonProperty("back_to_adl")
-    default Boolean isBackToAdl() {
-        Integer backToAdl = getBackToAdl();
-        return backToAdl != null && backToAdl == 1;
-    }
+    private Boolean backToAdl;
 
     @JsonProperty("support_usage")
-    default Boolean isSupportUsage() {
-        Integer supportUsage = getSupportUsage();
-        return supportUsage != null && supportUsage == 1;
-    }
+    private Boolean supportUsage;
 
     @JsonProperty("support_usage_num")
-    Integer getSUpportUsageNum();
+    private Integer supportUsageNum;
 
     @JsonProperty("completion_after_support_time")
-    String getCompletionAfterSupportTime();
+    private String completionAfterSupportTime;
 
     @JsonProperty("attempts_after_support_num")
-    Integer getAttemptsAfterSupportNum();
+    private Integer attemptsAfterSupportNum;
 
     @JsonProperty("creation_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getCreationTimestamp();
+    private Timestamp creationTimestamp;
 
     @JsonProperty("update_timestamp")
     @JsonSerialize(using = CustomTimestampSerializer.class)
-    Timestamp getUpdateTimestamp();
+    private Timestamp updateTimestamp;
 }

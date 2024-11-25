@@ -1,16 +1,20 @@
 package com.arplanet.adlappnmns.log;
 
 import com.arplanet.adlappnmns.enums.EventType;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 @Component
-@Slf4j
+@RequiredArgsConstructor
 public class LogContext {
+
+    private final Logger logger;
 
     private final ConcurrentHashMap<String, String> taskMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> eventTypeMap = new ConcurrentHashMap<>();
@@ -27,7 +31,8 @@ public class LogContext {
     public String getTaskId() {
         String date = currentDate.get();
         if (date == null) {
-            throw new IllegalStateException("[getTaskId] Current date not set. Please call setCurrentDate() first.");
+            logger.error("[getTaskId] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            return null;
         }
         return taskMap.computeIfAbsent(date, d -> generateId("task-" + date.replace("-", "")));
     }
@@ -35,7 +40,8 @@ public class LogContext {
     public String getEventType() {
         String date = currentDate.get();
         if (date == null) {
-            throw new IllegalStateException("[getEventType] Current date not set. Please call setCurrentDate() first.");
+            logger.error("[getEventType] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            return null;
         }
         return eventTypeMap.get(date);
     }
@@ -43,7 +49,8 @@ public class LogContext {
     public void setEventType(EventType eventType) {
         String date = currentDate.get();
         if (date == null) {
-            throw new IllegalStateException("[setEventType] Current date not set. Please call setCurrentDate() first.");
+            logger.error("[setEventType] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            return;
         }
         eventTypeMap.put(date, eventType.getTypeName());
     }
