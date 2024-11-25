@@ -129,6 +129,8 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
         };
     }
 
+
+
     @Override
     protected String getGroupingKey(LogBase<PlatformLogContext> logBase) {
         return logBase.getSessionId();
