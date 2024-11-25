@@ -15,7 +15,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.arplanet.adlappnmns.enums.ProcessType.SESSION_INFO_LOG;
 
 @Slf4j
 public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
@@ -46,27 +45,9 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
                 })
                 .toList();
 
-        if (SESSION_INFO_LOG.name().equals(processType.name())) {
-            logBaseList.forEach(element -> {
-                log.info("actionType={}", element.getActionType());
-            });
-        }
 
-        // 依照各個service資料的ID組成一個Map
-        Map<String, List<LogBase<L>>> logBaseGroup = logBaseList.parallelStream()
-                .collect(Collectors.groupingBy(logBase -> {
-                    logContext.setCurrentDate(date);
-                    return getGroupingKey(logBase);
-                }));
 
-        if (SESSION_INFO_LOG.name().equals(processType.name())) {
-            logBaseGroup.entrySet().forEach(entry -> {
-                log.info("group_key={}", entry.getKey());
-                log.info("group_actionType={}", entry.getValue().get(0).getActionType());
-            });
-        }
-
-        return getData(logBaseGroup, date);
+        return getData(logBaseList, date);
 
     }
 
@@ -100,9 +81,7 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
     protected abstract TypeReference<LogBase<L>> getLogBaseTypeReference();
 
-    protected abstract String getGroupingKey(LogBase<L> logBase);
-
-    protected abstract  List<T> getData(Map<String, List<LogBase<L>>> logBaseGroup, String date);
+    protected abstract  List<T> getData(List<LogBase<L>> logBaseList, String date);
 
     protected abstract String generateServicePath();
 }

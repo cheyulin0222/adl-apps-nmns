@@ -40,6 +40,9 @@ public class LogMessage {
     @JsonProperty("event_type")
     private String eventType;
 
+    @JsonProperty("error_type")
+    private String errorType;
+
     @JsonProperty("git_ver")
     private String git_ver;
 

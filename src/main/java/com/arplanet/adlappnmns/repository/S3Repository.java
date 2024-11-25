@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 
 @Repository
 public class S3Repository {
@@ -43,7 +45,7 @@ public class S3Repository {
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("bucket_name", bucketName);
             payload.put("file_path", folder);
-            logger.error("嘗試從s3取得檔案時發生錯誤", e, payload);
+            logger.error("嘗試從s3取得檔案時發生錯誤", e, payload, SYSTEM);
             throw e;
         }
     }
@@ -88,7 +90,7 @@ public class S3Repository {
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("bucket_name", bucketName);
             payload.put("file_path", fileName);
-            logger.error("嘗試從s3讀取檔案時發生錯誤", e, payload);
+            logger.error("嘗試從s3讀取檔案時發生錯誤", e, payload, SYSTEM);
             throw new RuntimeException(e);
         }
     }

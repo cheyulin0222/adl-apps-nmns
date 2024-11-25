@@ -1,14 +1,23 @@
 package com.arplanet.adlappnmns.domain.s3;
 
 import com.arplanet.adlappnmns.deserializer.UnixTimestampDeserializer;
+import com.arplanet.adlappnmns.log.Logger;
+import com.arplanet.adlappnmns.utils.DataConverter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
 
 @Data
 public class LogBase<T> {
+
+    @Autowired
+    private Logger logger;
+
+    @Autowired
+    private DataConverter dataConverter;
 
     @JsonProperty("log_group")
     private String logGroup;

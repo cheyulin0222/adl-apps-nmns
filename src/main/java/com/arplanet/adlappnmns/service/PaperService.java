@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 
 @Service("paperService")
 @Slf4j
@@ -42,7 +44,7 @@ public class PaperService extends NmnsServiceBase<PaperDTO> {
             date = date.replace("-", "");
             return nmnsContentUpdatedTimeRepository.findPaper(date);
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

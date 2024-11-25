@@ -8,5 +8,5 @@ import java.util.List;
 public interface NmnsService<T> {
     List<ZipEntryData> doProcess(String date, ProcessContext processContext);
     List<T> findByDate(String date, ProcessContext processContext);
-    void processData(String date, List<T> dataList);
+    List<T> processData(String date, List<T> dataList);
 }

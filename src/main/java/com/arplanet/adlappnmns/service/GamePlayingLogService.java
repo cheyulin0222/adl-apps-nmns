@@ -14,10 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 
 @Service("gamePlayingLogService")
 @RequiredArgsConstructor
 public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
+
+    public static final String GAME_PLAYING_LOG_UNIT_CONTENT_TYPE = "game";
 
     private final NmnsUserRepository nmnsUserRepository;
     private final Logger logger;
@@ -84,7 +88,7 @@ public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
                                 .build();
                     }).toList();
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

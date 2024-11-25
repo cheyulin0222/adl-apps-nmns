@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 
 @Service("materialInfoService")
@@ -45,7 +46,7 @@ public class MaterialInfoService extends NmnsServiceBase<MaterialInfoDTO> {
             date = date.replace("-", "");
             return nmnsContentUpdatedTimeRepository.findMaterialInfo(date);
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

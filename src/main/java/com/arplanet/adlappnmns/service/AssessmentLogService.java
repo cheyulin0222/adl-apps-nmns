@@ -6,6 +6,7 @@ import com.arplanet.adlappnmns.dto.AssessmentLogDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
+import com.arplanet.adlappnmns.utils.DataConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+import static com.arplanet.adlappnmns.service.GamePlayingLogService.GAME_PLAYING_LOG_UNIT_CONTENT_TYPE;
 
 
 @Service("assessmentLogService")
@@ -22,11 +27,10 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
 
     private final NmnsUserRepository nmnsUserRepository;
     private final Logger logger;
+    private final DataConverter dataConverter;
 
     @Override
     protected void validateData(AssessmentLogDTO data) {
-        log.info("進入AssessmentLogService的validateData");
-
         Objects.requireNonNull(data.getAssessmentLogSn(), "assessment_log_sn 不可為 null");
         Objects.requireNonNull(data.getAssessmentSn(), "assessment_sn 不可為 null");
         Objects.requireNonNull(data.getItemSn(), "item_sn 不可為 null");
@@ -44,14 +48,12 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
 
     @Override
     public List<AssessmentLogDTO> findByDate(String date, ProcessContext processContext) {
-        log.info("進入AssessmentLogService的findByDate");
         try {
             List<LogBase<SessionInfoLogContext>> sessionInfoList = processContext.getSessionInfoList();
 
-            log.info("sessionInfoList.size={}", sessionInfoList.size());
 
             List<Long> uidList = sessionInfoList.stream()
-                    .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
+                    .filter(this::validateLog)
                     .map(logBase -> logBase.getContext().getUid())
                     .distinct()
                     .toList();
@@ -63,24 +65,10 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
             log.info("成功拉到uid資料");
 
             return sessionInfoList.stream()
-                    .filter(logBase -> !"game".equals(logBase.getContext().getUnitContentType()) && logBase.getContext().getIsChoose())
+                    .filter(this::validateLog)
                     .map(logBase -> {
                         Long uid = logBase.getContext().getUid();
                         Map<String, String> userInfo = userInfoMap.get(uid);
-
-                        log.info("assessmentLogSn={}", logBase.getLogSn());
-                        log.info("assessmentSn={}", logBase.getSessionId());
-                        log.info("uid={}", uid);
-                        log.info("openidSub={}", userInfo.get("openidSub"));
-                        log.info("userId={}", userInfo.get("userId"));
-                        log.info("startTimestamp={}", logBase.getEventTimestamp());
-                        log.info("endTimestamp={}", logBase.getEventTimestamp());
-                        log.info("correctness={}", logBase.getContext().getCorrect());
-                        log.info("userAnswer={}", logBase.getContext().getOptionId());
-                        log.info("creationTimestamp={}", logBase.getEventTimestamp());
-                        log.info("updateTimestamp={}", logBase.getEventTimestamp());
-
-
 
                         return AssessmentLogDTO.builder()
                                 .assessmentLogSn(logBase.getLogSn())
@@ -99,8 +87,30 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
                                 .build();
                     }).toList();
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean validateLog(LogBase<SessionInfoLogContext> logBase) {
+
+        SessionInfoLogContext context = logBase.getContext();
+
+        Map<String, Object> data = dataConverter.convertToMap(logBase);
+        if (context == null) {
+            logger.error("至S3取得的session.info，context資料為null", data, SERVICE);
+            return false;
+        }
+        if (context.getIsChoose() == null) {
+            logger.error("至S3取得的session.info，context.is_choose資料為null", data, SERVICE);
+            return false;
+        }
+        if (context.getUnitContentType() == null) {
+            logger.error("至S3取得的session.info，context.unit_content_type資料為null", data, SERVICE);
+            return false;
+        }
+
+        return !GAME_PLAYING_LOG_UNIT_CONTENT_TYPE.equals(context.getUnitContentType())
+                && context.getIsChoose();
     }
 }

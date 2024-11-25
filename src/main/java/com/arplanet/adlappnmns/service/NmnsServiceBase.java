@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.arplanet.adlappnmns.enums.ProcessType.ASSESSMENT_LOG;
+import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 import static com.arplanet.adlappnmns.utils.ServiceUtil.APPLICATION_JSON;
 
 @Slf4j
@@ -68,55 +69,53 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     public List<ZipEntryData> doProcess(String date, ProcessContext processContext) {
         List<T> dataList = findByDate(date, processContext);
 
-        processData(date, dataList);
+        List<T> newList = processData(date, dataList);
 
-        return createZipEntries(dataList, date, processType.getTypeName());
+        return createZipEntries(newList, date, processType.getTypeName());
     }
 
     @Override
-    public void processData(String date, List<T> dataList) {
-
+    public List<T> processData(String date, List<T> dataList) {
         if (processType.isEnableS3Backup()) {
-            if (ASSESSMENT_LOG.name().equals(processType.name())) {
-                log.info("ASSESSMENT_LOG進入enableS3Backup");
-            }
-            dataList.parallelStream()
+            return dataList.parallelStream()
                     .peek(data -> logContext.setCurrentDate(date))
-                    .forEach(data -> {
+                    .filter(data -> {
                         Map<String, Object> dataMap = dataConverter.convertToMap(data);
                         try {
                             validateData(data);
 
                             saveToS3(data);
+                            return true;
                         } catch (NullPointerException e) {
-                            logger.error(processType.getTypeName() + "資料驗證失敗", e, dataMap);
-                            throw new RuntimeException(e);
+                            logger.error(processType.getTypeName() + " 資料驗證失敗", e, dataMap, SERVICE);
+                            return false;
                         } catch (S3Exception e) {
-                            logger.error("上傳S3失敗", e, dataMap);
-                            throw new RuntimeException(e);
+                            logger.error(processType.getTypeName() + " 上傳S3失敗", e, dataMap, SYSTEM);
+                            return true;
                         } catch (JsonProcessingException e) {
-                            logger.error("資料轉換JSON字串失敗", e, dataMap);
-                            throw new RuntimeException(e);
+                            logger.error(processType.getTypeName() + " 資料轉換JSON字串失敗", e, dataMap, SYSTEM);
+                            return false;
                         } catch (UnsupportedOperationException e) {
-                            logger.error("上傳到S3的Service沒有Override getId()", e, dataMap);
-                            throw new RuntimeException(e);
+                            logger.error(processType.getTypeName() + " 上傳到S3的Service沒有Override getId()", e, dataMap, SYSTEM);
+                            return true;
                         }
-                    });
+                    })
+                    .toList();
+
         } else {
-            if (ASSESSMENT_LOG.name().equals(processType.name())) {
-                log.info("ASSESSMENT_LOG進入NotenableS3Backup");
-            }
-            dataList.parallelStream()
+            return dataList.parallelStream()
                     .peek(data -> logContext.setCurrentDate(date))
-                    .forEach(data -> {
+                    .filter(data -> {
                         Map<String, Object> dataMap = dataConverter.convertToMap(data);
                         try {
                             validateData(data);
+                            return true;
                         } catch (NullPointerException e) {
-                            logger.error("資料驗證失敗", e, dataMap);
-                            throw new RuntimeException(e);
+                            logger.error(processType.getTypeName() + " 資料驗證失敗", e, dataMap, SERVICE);
+                            return false;
                         }
-                    });
+                    })
+                    .toList();
         }
     }
 
@@ -137,7 +136,7 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                         String jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
                         return createZipEntryData(createFileName(date, start + 1, end, typeName), jsonContent);
                     } catch (Exception e) {
-                        logger.error("建立ZIP檔案的" + typeName + "Json檔失敗", e);
+                        logger.error("建立ZIP檔案的" + typeName + "Json檔失敗", e, SYSTEM);
                         throw new RuntimeException(e);
                     }
                 })

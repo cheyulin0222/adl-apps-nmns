@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 import static com.arplanet.adlappnmns.utils.ServiceUtil.*;
 
 @RequiredArgsConstructor
@@ -55,7 +56,7 @@ public class NmnsServiceFacade {
 
             logger.info("上傳成功");
         } catch (Exception e) {
-            logger.error("上傳失敗");
+            logger.error("上傳失敗", SYSTEM);
             throw e;
         }
     }
@@ -117,7 +118,7 @@ public class NmnsServiceFacade {
             return byteArrayOutputStream.toByteArray();
 
         } catch (Exception e) {
-            logger.error("建立ZIP檔案失敗", e);
+            logger.error("建立ZIP檔案失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

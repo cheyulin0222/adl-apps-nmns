@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.log;
 
+import com.arplanet.adlappnmns.enums.ErrorType;
 import com.arplanet.adlappnmns.enums.ProcessType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,46 +35,51 @@ public class Logger {
     private final ConfigurableListableBeanFactory beanFactory;
 
     public void info(String message) {
-        log(LogLevel.INFO, message, new HashMap<>(0), new HashMap<>(0));
+        log(LogLevel.INFO, message, new HashMap<>(0), new HashMap<>(0), null);
     }
 
     public void info(String message, Map<String, Object> payload) {
-        log(LogLevel.INFO, message, payload, new HashMap<>(0));
+        log(LogLevel.INFO, message, payload, new HashMap<>(0), null);
     }
 
     public void info(String message, Map<String, Object> payload, Map<String, Object> logData) {
-        log(LogLevel.INFO, message, payload, logData);
+        log(LogLevel.INFO, message, payload, logData, null);
     }
 
-    public void error(String message) {
-        log(LogLevel.ERROR, message, new HashMap<>(0), new HashMap<>(0));
+    public void error(String message, ErrorType errorType) {
+        log(LogLevel.ERROR, message, new HashMap<>(0), new HashMap<>(0), errorType);
     }
 
-    public void error(String message, Throwable error) {
+    public void error(String message, Map<String, Object> payload, ErrorType errorType) {
+        log(LogLevel.ERROR, message, payload, new HashMap<>(0), errorType);
+    }
+
+    public void error(String message, Throwable error, ErrorType errorType) {
         Map<String, Object> errorData = new HashMap<>();
         errorData.put("error", error.getMessage());
         errorData.put("stackTrace", Arrays.toString(error.getStackTrace()));
-        log(LogLevel.ERROR, message, new HashMap<>(0), errorData);
+        log(LogLevel.ERROR, message, new HashMap<>(0), errorData, errorType);
     }
 
-    public void error(String message, Throwable error, Map<String, Object> payload) {
+    public void error(String message, Throwable error, Map<String, Object> payload, ErrorType errorType) {
         Map<String, Object> errorData = new HashMap<>();
         errorData.put("error", error.getMessage());
         errorData.put("stackTrace", Arrays.toString(error.getStackTrace()));
-        log(LogLevel.ERROR, message, payload, errorData);
+        log(LogLevel.ERROR, message, payload, errorData, errorType);
     }
 
-    public void error(String message, Throwable error, Map<String, Object> payload, Map<String, Object> logData) {
+    public void error(String message, Throwable error, Map<String, Object> payload, Map<String, Object> logData, ErrorType errorType) {
         logData.put("error", error.getMessage());
         logData.put("stackTrace", Arrays.toString(error.getStackTrace()));
-        log(LogLevel.ERROR, message, payload, logData);
+        log(LogLevel.ERROR, message, payload, logData, errorType);
     }
 
-    private void log(LogLevel level, String message, Map<String, Object> payload, Map<String, Object> logData) {
+    private void log(LogLevel level, String message, Map<String, Object> payload, Map<String, Object> logData, ErrorType errorType) {
         try {
             LogMessage logMessage = LogMessage.builder()
                     .service("adl-apps-nmns")
                     .logLevel(level.name().toLowerCase())
+                    .errorType(errorType.getErrorType())
                     .taskId(logContext.getTaskId())
                     .processType(getProcessType())
                     .taskDate(logContext.getCurrentDate())

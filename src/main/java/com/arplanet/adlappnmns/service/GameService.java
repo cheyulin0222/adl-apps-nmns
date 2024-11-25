@@ -13,6 +13,8 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 
 @Service("gameService")
 @Slf4j
@@ -44,7 +46,7 @@ public class GameService extends NmnsServiceBase<GameDTO> {
             Timestamp end = ServiceUtil.getEndDate(date);
             return nmnsUserGameSessionRepository.findGame(start, end);
         } catch (Exception e) {
-            logger.error("至資料庫取得資料失敗", e);
+            logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }

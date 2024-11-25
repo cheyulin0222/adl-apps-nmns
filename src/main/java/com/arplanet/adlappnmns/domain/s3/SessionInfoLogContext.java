@@ -3,6 +3,7 @@ package com.arplanet.adlappnmns.domain.s3;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+
 @Data
 public class SessionInfoLogContext {
 
@@ -89,6 +90,4 @@ public class SessionInfoLogContext {
 
     @JsonProperty("is_correct")
     private Boolean correct;
-
-
 }
