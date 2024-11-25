@@ -56,6 +56,8 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
                     .distinct()
                     .toList();
 
+            log.info("uidList.size={}", uidList.size());
+
             Map<Long, Map<String, String>> userInfoMap  = nmnsUserRepository.findUserMapByUidIn(uidList);
 
             log.info("成功拉到uid資料");

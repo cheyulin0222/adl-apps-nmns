@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service.s3;
 
 import com.arplanet.adlappnmns.domain.s3.LogBase;
 import com.arplanet.adlappnmns.domain.s3.SessionInfoLogContext;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,15 @@ public class SessionInfoLogService extends NmnsS3ServiceBase<LogBase<SessionInfo
 
     @Override
     protected List<LogBase<SessionInfoLogContext>> getData(Map<String, List<LogBase<SessionInfoLogContext>>> logBaseGroup, String date) {
-        log.info("進入sessionInfoService.getData");
+
         List<LogBase<SessionInfoLogContext>> quizAnswer = logBaseGroup.getOrDefault("quiz.answer", Collections.emptyList());
-        quizAnswer.stream().forEach(e -> {
-            log.info("getData_quizId={}", e.getContext().getQuizId());
+
+        quizAnswer.forEach(logBase -> {
+            try {
+                log.info(objectMapper.writeValueAsString(logBase));  // Remove TypeReference
+            } catch (JsonProcessingException e) {
+                log.error("Error serializing logBase", e);
+            }
         });
 
         return logBaseGroup.getOrDefault("quiz.answer", Collections.emptyList());
