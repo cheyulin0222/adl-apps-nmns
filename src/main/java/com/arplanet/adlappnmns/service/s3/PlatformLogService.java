@@ -3,6 +3,8 @@ package com.arplanet.adlappnmns.service.s3;
 import com.arplanet.adlappnmns.domain.s3.LogBase;
 import com.arplanet.adlappnmns.domain.s3.PlatformLogContext;
 import com.arplanet.adlappnmns.dto.PlatformLogDTO;
+import com.arplanet.adlappnmns.enums.ErrorType;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.stereotype.Service;
@@ -11,11 +13,22 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
+
 @Service("platformLogService")
 public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, PlatformLogContext> {
 
     @Override
-    protected List<PlatformLogDTO> getData(Map<String, List<LogBase<PlatformLogContext>>> logBaseGroup, String date) {
+    protected List<PlatformLogDTO> getData(List<LogBase<PlatformLogContext>> logBaseList, String date) {
+
+        // 依照session_id組成Map
+        Map<String, List<LogBase<PlatformLogContext>>> logBaseGroup = logBaseList.parallelStream()
+                .collect(Collectors.groupingBy(logBase -> {
+                    logContext.setCurrentDate(date);
+                    return getGroupingKey(logBase);
+                }));
+
 
         return logBaseGroup.entrySet().parallelStream()
                 .map(entry -> {
@@ -41,17 +54,10 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
             if (logs.size() == 2 ) {
                 LogBase<PlatformLogContext> login;
                 LogBase<PlatformLogContext> logout;
-                try {
-                    login = findLogByActionType(logs, "login");
-                    logout = findLogByActionType(logs, "logout");
-                } catch (Exception e) {
-                    HashMap<String, Object> payload = new HashMap<>();
-                    payload.put("sessionId", entry.getKey());
-                    payload.put("logsSize", logs.size());
-                    payload.put("logs", logs);
-                    logger.error(e.getMessage(), e, payload);
-                    return null;
-                }
+
+                login = findLogByActionType(logs, "login");
+                logout = findLogByActionType(logs, "logout");
+
 
                 // 排除Postman沒有值的狀況
                 if (login.getContext().getPlatformsTrackingPrior() == null) {
@@ -71,21 +77,23 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
 
                 return buildPlatformLogDTO(login, expiredTimestamp);
             } else if (logs.size() > 2) {
-                HashMap<String, Object> payload = new HashMap<>();
-                payload.put("sessionId", entry.getKey());
-                payload.put("logsSize", logs.size());
-                payload.put("logs", logs);
-                logger.error("platform_log 資料筆數超過 2 筆",  payload);
-                return null;
+                throw new NmnsServiceException("platform_log 資料筆數超過 2 筆");
             }
 
+            return null;
+        } catch (NmnsServiceException e) {
+            HashMap<String, Object> payload = new HashMap<>();
+            payload.put("sessionId", entry.getKey());
+            payload.put("logsSize", logs.size());
+            payload.put("logs", logs);
+            logger.error(e.getMessage(), payload, SERVICE);
             return null;
         } catch (Exception e) {
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("sessionId", entry.getKey());
             payload.put("logsSize", logs.size());
             payload.put("logs", logs);
-            logger.error("處理platform_Log時發生錯誤", e, payload);
+            logger.error("處理platform_Log時發生錯誤", e, payload, SYSTEM);
             throw e;
         }
     }
@@ -131,8 +139,7 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
 
 
 
-    @Override
-    protected String getGroupingKey(LogBase<PlatformLogContext> logBase) {
+    private String getGroupingKey(LogBase<PlatformLogContext> logBase) {
         return logBase.getSessionId();
     }
 
@@ -143,7 +150,7 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
                 .filter(logBase -> actionType.equals(logBase.getActionType())
                         && !Boolean.FALSE.equals(logBase.getContext().getSuccess()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Platform_log 找不到 " + actionType + " 資料"));
+                .orElseThrow(() -> new NmnsServiceException("Platform_log 找不到 " + actionType + " 資料"));
     }
 
     @Override

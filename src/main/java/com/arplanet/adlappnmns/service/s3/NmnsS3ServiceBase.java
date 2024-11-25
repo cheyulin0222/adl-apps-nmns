@@ -10,10 +10,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
+import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 
 @Slf4j
@@ -52,31 +53,41 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
     }
 
     private List<LogBase<L>> readFile(String filePath) {
-        String content = null;
+        String content;
+
         try {
             content = s3Repository.readFile(bucketName, filePath);
-            String[] dataList = content.split("\n");
-            List<LogBase<L>> result = new ArrayList<>();
-
-            for (String data : dataList) {
-                if (!data.trim().isEmpty()) {
-                    result.add(objectMapper.readValue(data, getLogBaseTypeReference()));
-                }
-            }
-            return result;
-
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("file_path", filePath);
-            payload.put("content", content);
-            logger.error("至S3讀取資料，JSON解析失敗", e, payload);
-            throw new RuntimeException(e);
-        } catch (S3Exception e) {
-            HashMap<String, Object> payload = new HashMap<>();
-            payload.put("file_path", filePath);
-            logger.error("至S3讀取資料失敗", e, payload);
+            logger.error("至S3讀取資料失敗", e, payload, SYSTEM);
             throw new RuntimeException(e);
         }
+
+        String[] dataList = content.split("\n");
+        List<LogBase<L>> result = new ArrayList<>();
+
+        for (String data : dataList) {
+            if (!data.trim().isEmpty()) {
+                try {
+                    result.add(objectMapper.readValue(data, getLogBaseTypeReference()));
+                } catch (JsonProcessingException e) {
+                    HashMap<String, Object> payload = new HashMap<>();
+                    payload.put("file_path", filePath);
+                    payload.put("content", content);
+                    logger.error("至S3讀取資料，JSON解析失敗", e, payload, SERVICE);
+                } catch (Exception e) {
+                    HashMap<String, Object> payload = new HashMap<>();
+                    payload.put("file_path", filePath);
+                    payload.put("content", content);
+                    logger.error("至S3讀取資料，JSON解析失敗", e, payload, SERVICE);
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return result;
+
+
     }
 
     protected abstract TypeReference<LogBase<L>> getLogBaseTypeReference();
