@@ -2,7 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.dto.UserInfoDTO;
-import com.arplanet.adlappnmns.enums.ErrorType;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Objects;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
@@ -26,12 +25,12 @@ public class UserInfoService extends NmnsServiceBase<UserInfoDTO> {
 
     @Override
     protected void validateData(UserInfoDTO data) {
-        Objects.requireNonNull(data.getUid(), "uid 不可為 null");
-        Objects.requireNonNull(data.getIdp(), "idp 不可為 null");
-        Objects.requireNonNull(data.getUserId(), "user_id 不可為 null");
-        Objects.requireNonNull(data.getOpenidSub(), "openid_sub 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
+        if (data.getIdp() == null) throw new NmnsServiceException("idp 不可為 null");
+        if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
+        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override

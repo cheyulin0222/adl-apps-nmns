@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.MaterialInfoDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +25,14 @@ public class MaterialInfoService extends NmnsServiceBase<MaterialInfoDTO> {
 
     @Override
     protected void validateData(MaterialInfoDTO data) {
-        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
-        Objects.requireNonNull(data.getMaterialId(), "material_id 不可為 null");
-        Objects.requireNonNull(data.getMaterialExpType(), "material_exp_type 不可為 null");
-        Objects.requireNonNull(data.getMaterialGroups(), "material_groups 不可為 null");
-        Objects.requireNonNull(data.getMaterialContentType(), "material_content_type 不可為 null");
-        Objects.requireNonNull(data.getType(), "type 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");
+        if (data.getMaterialId() == null) throw new NmnsServiceException("material_id 不可為 null");
+        if (data.getMaterialExpType() == null) throw new NmnsServiceException("material_exp_type 不可為 null");
+        if (data.getMaterialGroups() == null) throw new NmnsServiceException("material_groups 不可為 null");
+        if (data.getMaterialContentType() == null) throw new NmnsServiceException("material_content_type 不可為 null");
+        if (data.getType() == null) throw new NmnsServiceException("type 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override

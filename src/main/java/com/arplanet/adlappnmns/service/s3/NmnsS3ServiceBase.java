@@ -5,6 +5,7 @@ import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.service.NmnsServiceBase;
+import com.arplanet.adlappnmns.utils.DataConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,9 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
     protected LogContext logContext;
     @Autowired
     protected Logger logger;
+
+    @Autowired
+    private DataConverter dataConverter;
     
     @Override
     public List<T> findByDate(String date, ProcessContext processContext) {
@@ -45,8 +49,6 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
                     return readFile(filePath).stream();
                 })
                 .toList();
-
-
 
         return getData(logBaseList, date);
 
@@ -67,27 +69,31 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
         String[] dataList = content.split("\n");
         List<LogBase<L>> result = new ArrayList<>();
 
-        for (String data : dataList) {
-            if (!data.trim().isEmpty()) {
-                try {
-                    result.add(objectMapper.readValue(data, getLogBaseTypeReference()));
-                } catch (JsonProcessingException e) {
-                    HashMap<String, Object> payload = new HashMap<>();
-                    payload.put("file_path", filePath);
-                    payload.put("content", content);
-                    logger.error("至S3讀取資料，JSON解析失敗", e, payload, SERVICE);
-                } catch (Exception e) {
-                    HashMap<String, Object> payload = new HashMap<>();
-                    payload.put("file_path", filePath);
-                    payload.put("content", content);
-                    logger.error("至S3讀取資料，JSON解析失敗", e, payload, SERVICE);
-                    throw new RuntimeException(e);
+        for (int i = 0; i < dataList.length; i++) {
+            String data = dataList[i].trim();
+            if (data.isEmpty()) {
+                continue;
+            }
+
+            try {
+                LogBase<L> parsedLog = objectMapper.readValue(data, getLogBaseTypeReference());
+                result.add(parsedLog);
+
+            } catch (Exception e) {
+                HashMap<String, Object> payload = new HashMap<>();
+                payload.put("file_path", filePath);
+                payload.put("content", content);
+                payload.put("data", data);
+                payload.put("line_number", i + 1);
+
+                if (e instanceof JsonProcessingException) {
+                    logger.error("JSON解析失敗", e, payload, SERVICE);
+                } else {
+                    logger.error("解析資料時發生未知錯誤", e, payload, SYSTEM);
                 }
             }
         }
         return result;
-
-
     }
 
     protected abstract TypeReference<LogBase<L>> getLogBaseTypeReference();

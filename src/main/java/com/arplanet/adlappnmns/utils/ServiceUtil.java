@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.utils;
 
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 
@@ -38,7 +39,7 @@ public class ServiceUtil {
 
         // 檢查是否超出 Integer 範圍
         if (differenceInSeconds > Integer.MAX_VALUE) {
-            throw new ArithmeticException("Time difference is too large to be represented as an Integer");
+            throw new NmnsServiceException("時間差距過大無法用 Integer 表示");
         }
 
         // 轉換為 Integer 並返回

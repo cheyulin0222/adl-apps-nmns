@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.InstructionDataLogDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserUnitContentSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,16 +24,16 @@ public class InstructionDataLogService extends NmnsServiceBase<InstructionDataLo
 
     @Override
     protected void validateData(InstructionDataLogDTO data) {
-        Objects.requireNonNull(data.getLogSn(), "log_sn 不可為 null");
-        Objects.requireNonNull(data.getOpenidSub(), "openid_sub 不可為 null");
-        Objects.requireNonNull(data.getUserId(), "user_id 不可為 null");
-        Objects.requireNonNull(data.getLogType(), "log_type 不可為 null");
-        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
-        Objects.requireNonNull(data.getStartTimestamp(), "start_timestamp 不可為 null");
-        Objects.requireNonNull(data.getExpiredTimestamp(), "expired_timestamp 不可為 null");
-        Objects.requireNonNull(data.getDuration(), "duration 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getLogSn() == null) throw new NmnsServiceException("log_sn 不可為 null");
+        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
+        if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
+        if (data.getLogType() == null) throw new NmnsServiceException("log_type 不可為 null");
+        if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");
+        if (data.getStartTimestamp() == null) throw new NmnsServiceException("start_timestamp 不可為 null");
+        if (data.getExpiredTimestamp() == null) throw new NmnsServiceException("expired_timestamp 不可為 null");
+        if (data.getDuration() == null) throw new NmnsServiceException("duration 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override

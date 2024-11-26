@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.PaperDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
@@ -26,10 +26,10 @@ public class PaperService extends NmnsServiceBase<PaperDTO> {
 
     @Override
     protected void validateData(PaperDTO data) {
-        Objects.requireNonNull(data.getPaperSn(), "paper_sn 不可為 null");
-        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getPaperSn() == null) throw new NmnsServiceException("paper_sn 不可為 null");
+        if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override

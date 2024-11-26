@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.GameDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserGameSessionRepository;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Objects;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
@@ -26,12 +26,12 @@ public class GameService extends NmnsServiceBase<GameDTO> {
 
     @Override
     protected void validateData(GameDTO data) {
-        Objects.requireNonNull(data.getGameSn(), "game_sn 不可為 null");
-        Objects.requireNonNull(data.getGameType(), "game_type 不可為 null");
-        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
-        Objects.requireNonNull(data.getPassNum(), "pass_num 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getGameSn() == null) throw new NmnsServiceException("game_sn 不可為 null");
+        if (data.getGameType() == null) throw new NmnsServiceException("game_type 不可為 null");
+        if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");
+        if (data.getPassNum() == null) throw new NmnsServiceException("pass_num 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override

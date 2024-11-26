@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.service;
 
 import com.arplanet.adlappnmns.dto.ItemInfoDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsContentUpdatedTimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,11 @@ public class ItemInfoService extends NmnsServiceBase<ItemInfoDTO> {
 
     @Override
     protected void validateData(ItemInfoDTO data) {
-        Objects.requireNonNull(data.getItemSn(), "item_sn 不可為 null");
-        Objects.requireNonNull(data.getMaterialSn(), "material_sn 不可為 null");
-        Objects.requireNonNull(data.getItemType(), "item_type 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getItemSn() == null) throw new NmnsServiceException("item_sn 不可為 null");
+        if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");
+        if (data.getItemType() == null) throw new NmnsServiceException("item_type 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
 

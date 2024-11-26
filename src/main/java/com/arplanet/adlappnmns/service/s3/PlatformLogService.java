@@ -3,7 +3,6 @@ package com.arplanet.adlappnmns.service.s3;
 import com.arplanet.adlappnmns.domain.s3.LogBase;
 import com.arplanet.adlappnmns.domain.s3.PlatformLogContext;
 import com.arplanet.adlappnmns.dto.PlatformLogDTO;
-import com.arplanet.adlappnmns.enums.ErrorType;
 import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -119,16 +118,16 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
     }
 
     private void validate(LogBase<PlatformLogContext> login, Timestamp logoutTimestamp) {
-        Objects.requireNonNull(login.getSessionId(), "platform_log_sn 不可為 null");
-        Objects.requireNonNull(login.getUid(), "uid 不可為 null");
-        Objects.requireNonNull(login.getContext(), "context 不可為 null");
-        Objects.requireNonNull(login.getContext().getIdp(), "idp 不可為 null");
-        Objects.requireNonNull(login.getContext().getSub(), "openidSub 不可為 null");
-        Objects.requireNonNull(login.getContext().getUserId(), "userId 不可為 null");
-        Objects.requireNonNull(login.getActionTimestampMs(), "loginTimestamp 不可為 null");
-        Objects.requireNonNull(logoutTimestamp, "logoutTimestamp 不可為 null");
-        Objects.requireNonNull(login.getContext().getPlatformsTrackingPrior(), "platformsTrackingPrior 不可為 null");
-        Objects.requireNonNull(login.getContext().getPlatformsTrackingPost(), "platformsTrackingPost 不可為 null");
+        if (login.getSessionId() == null) throw new NmnsServiceException("platform_log_sn 不可為 null");
+        if (login.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
+        if (login.getContext() == null) throw new NmnsServiceException("context 不可為 null");
+        if (login.getContext().getIdp() == null) throw new NmnsServiceException("idp 不可為 null");
+        if (login.getContext().getSub() == null) throw new NmnsServiceException("openidSub 不可為 null");
+        if (login.getContext().getUserId() == null) throw new NmnsServiceException("userId 不可為 null");
+        if (login.getActionTimestampMs() == null) throw new NmnsServiceException("loginTimestamp 不可為 null");
+        if (logoutTimestamp == null) throw new NmnsServiceException("logoutTimestamp 不可為 null");
+        if (login.getContext().getPlatformsTrackingPrior() == null) throw new NmnsServiceException("platformsTrackingPrior 不可為 null");
+        if (login.getContext().getPlatformsTrackingPost() == null) throw new NmnsServiceException("platformsTrackingPost 不可為 null");
     }
 
     @Override

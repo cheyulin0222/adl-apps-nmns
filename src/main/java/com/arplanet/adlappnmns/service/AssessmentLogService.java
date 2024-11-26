@@ -4,6 +4,7 @@ import com.arplanet.adlappnmns.domain.s3.LogBase;
 import com.arplanet.adlappnmns.domain.s3.SessionInfoLogContext;
 import com.arplanet.adlappnmns.dto.AssessmentLogDTO;
 import com.arplanet.adlappnmns.dto.ProcessContext;
+import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
 import com.arplanet.adlappnmns.utils.DataConverter;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
@@ -31,19 +31,19 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
 
     @Override
     protected void validateData(AssessmentLogDTO data) {
-        Objects.requireNonNull(data.getAssessmentLogSn(), "assessment_log_sn 不可為 null");
-        Objects.requireNonNull(data.getAssessmentSn(), "assessment_sn 不可為 null");
-        Objects.requireNonNull(data.getItemSn(), "item_sn 不可為 null");
-        Objects.requireNonNull(data.getUid(), "uid 不可為 null");
-        Objects.requireNonNull(data.getOpenidSub(), "openid_sub 不可為 null");
-        Objects.requireNonNull(data.getUserId(), "user_id 不可為 null");
-        Objects.requireNonNull(data.getStartTimestamp(), "start_timestamp 不可為 null");
-        Objects.requireNonNull(data.getEndTimestamp(), "end_timestamp 不可為 null");
-        Objects.requireNonNull(data.getDuration(), "duration 不可為 null");
-        Objects.requireNonNull(data.getCorrectness(), "correctness 不可為 null");
-        Objects.requireNonNull(data.getUserAnswer(), "user_answer 不可為 null");
-        Objects.requireNonNull(data.getCreationTimestamp(), "creation_timestamp 不可為 null");
-        Objects.requireNonNull(data.getUpdateTimestamp(), "update_timestamp 不可為 null");
+        if (data.getAssessmentLogSn() == null) throw new NmnsServiceException("assessment_log_sn 不可為 null");
+        if (data.getAssessmentSn() == null) throw new NmnsServiceException("assessment_sn 不可為 null");
+        if (data.getItemSn() == null) throw new NmnsServiceException("item_sn 不可為 null");
+        if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
+        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
+        if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
+        if (data.getStartTimestamp() == null) throw new NmnsServiceException("start_timestamp 不可為 null");
+        if (data.getEndTimestamp() == null) throw new NmnsServiceException("end_timestamp 不可為 null");
+        if (data.getDuration() == null) throw new NmnsServiceException("duration 不可為 null");
+        if (data.getCorrectness() == null) throw new NmnsServiceException("correctness 不可為 null");
+        if (data.getUserAnswer() == null) throw new NmnsServiceException("user_answer 不可為 null");
+        if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
+        if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }
 
     @Override
@@ -51,18 +51,13 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
         try {
             List<LogBase<SessionInfoLogContext>> sessionInfoList = processContext.getSessionInfoList();
 
-
             List<Long> uidList = sessionInfoList.stream()
                     .filter(this::validateLog)
                     .map(logBase -> logBase.getContext().getUid())
                     .distinct()
                     .toList();
 
-            log.info("uidList.size={}", uidList.size());
-
             Map<Long, Map<String, String>> userInfoMap  = nmnsUserRepository.findUserMapByUidIn(uidList);
-
-            log.info("成功拉到uid資料");
 
             return sessionInfoList.stream()
                     .filter(this::validateLog)
@@ -86,6 +81,8 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
                                 .updateTimestamp(logBase.getEventTimestamp())
                                 .build();
                     }).toList();
+
+
         } catch (Exception e) {
             logger.error("至資料庫取得資料失敗", e, SYSTEM);
             throw new RuntimeException(e);

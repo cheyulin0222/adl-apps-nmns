@@ -2,19 +2,18 @@ package com.arplanet.adlappnmns.log;
 
 import com.arplanet.adlappnmns.enums.EventType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LogContext {
-
-    private final Logger logger;
 
     private final ConcurrentHashMap<String, String> taskMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> eventTypeMap = new ConcurrentHashMap<>();
@@ -31,7 +30,7 @@ public class LogContext {
     public String getTaskId() {
         String date = currentDate.get();
         if (date == null) {
-            logger.error("[getTaskId] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            log.error("[getTaskId] Current date not set. Please call setCurrentDate() first.");
             return null;
         }
         return taskMap.computeIfAbsent(date, d -> generateId("task-" + date.replace("-", "")));
@@ -40,7 +39,7 @@ public class LogContext {
     public String getEventType() {
         String date = currentDate.get();
         if (date == null) {
-            logger.error("[getEventType] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            log.error("[getEventType] Current date not set. Please call setCurrentDate() first.");
             return null;
         }
         return eventTypeMap.get(date);
@@ -49,7 +48,7 @@ public class LogContext {
     public void setEventType(EventType eventType) {
         String date = currentDate.get();
         if (date == null) {
-            logger.error("[setEventType] Current date not set. Please call setCurrentDate() first.", SYSTEM);
+            log.error("[setEventType] Current date not set. Please call setCurrentDate() first.");
             return;
         }
         eventTypeMap.put(date, eventType.getTypeName());
