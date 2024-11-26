@@ -5,7 +5,6 @@ import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.enums.ProcessType;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
-import com.arplanet.adlappnmns.record.ZipEntryData;
 import com.arplanet.adlappnmns.repository.GCSRepository;
 import com.arplanet.adlappnmns.service.NmnsService;
 import lombok.RequiredArgsConstructor;
@@ -45,25 +44,13 @@ public class NmnsServiceFacade {
             // 產生GCP路徑
             String destinationPath = getDestinationPath(gcsDestinationFolder, date);
 
-            // 使用串流方式上傳到 GCS
+            // 先取得GCS bucket 的 OutputStream，將 OutputStream 傳給各 Service 使用串流方式上傳到 GCS
             gcsRepository.streamToGCS(
                     gcsDestinationBucketName,
                     destinationPath,
                     APPLICATION_ZIP,
                     outputStream -> processAndWriteToStream(date, outputStream)
             );
-
-
-//            List<ZipEntryData> zipEntries = getData(date);
-
-//            // 產生zip
-//            byte[] zipData = createZipFile(zipEntries);
-
-            // 產生GCP路徑
-//            String destinationPath = getDestinationPath(gcsDestinationFolder, date);
-
-            // 上傳GCP
-//            gcsRepository.putFile(gcsDestinationBucketName, destinationPath, APPLICATION_ZIP, zipData);
 
             logger.info("上傳成功");
         } catch (Exception e) {
@@ -74,12 +61,16 @@ public class NmnsServiceFacade {
 
     private void processAndWriteToStream(String date, OutputStream outputStream) throws Exception {
         try (ZipOutputStream zipStream = new ZipOutputStream(outputStream)) {
+
+            // 先取得各個 service 執行前需要的共同資料
             ProcessContext processContext = getContext(date);
 
+            // 執行 service
+            // 取得資料 -> 驗證資料 -> 備份 -> 上傳 GCS
             Arrays.stream(ProcessType.values())
                     .filter(processType -> !processType.isPreContext())
+                    .peek(processType -> logContext.setCurrentDate(date))
                     .forEach(processType -> {
-                        logContext.setCurrentDate(date);
                         NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
                         nmnsService.doProcess(date, processContext, zipStream);
                     });
@@ -88,23 +79,8 @@ public class NmnsServiceFacade {
         }
     }
 
-//    private List<ZipEntryData> getData(String date) {
-//
-//        ProcessContext processContext = getContext(date);
-//
-//        return Arrays.stream(ProcessType.values())
-//                .filter(processType -> !processType.isPreContext())
-//                .parallel()
-//                .peek(processType -> logContext.setCurrentDate(date))
-//                .flatMap(processType -> {
-//                    NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
-//                    return nmnsService.doProcess(date, processContext).stream();
-//                })
-//                .collect(Collectors.toList());
-//    }
-
     private ProcessContext getContext(String date) {
-        logger.info("處理 ProcessContext");
+        logger.info("產生 Service 共用資料");
         try {
             Map<String, List<?>> resultMap = Arrays.stream(ProcessType.values())
                     .filter(ProcessType::isPreContext)
@@ -118,11 +94,13 @@ public class NmnsServiceFacade {
                             }
                     ));
 
+            logger.info("產生 Service 共用資料成功");
+
             return ProcessContext.builder()
                     .typeListMap(resultMap)
                     .build();
         } catch (Exception e) {
-            logger.error("處理 ProcessContext 失敗", e, SYSTEM);
+            logger.error("產生 Service 共用資料失敗", e, SYSTEM);
             throw e;
         }
     }
@@ -130,28 +108,4 @@ public class NmnsServiceFacade {
     private String getDestinationPath(String destinationFolder, String date) {
         return destinationFolder + date + ".zip";
     }
-
-//    private byte[] createZipFile(List<ZipEntryData> zipEntries) {
-//        logger.info("建立ZIP檔案開始");
-//        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//             ZipOutputStream zipStream = new ZipOutputStream(byteArrayOutputStream)) {
-//
-//            for (ZipEntryData entryData : zipEntries) {
-//                ZipEntry zipEntry = new ZipEntry(entryData.fileName());
-//                zipStream.putNextEntry(zipEntry);
-//                zipStream.write(entryData.content());
-//                zipStream.closeEntry();
-//            }
-//
-//            zipStream.finish();
-//
-//            logger.info("建立ZIP檔案成功");
-//
-//            return byteArrayOutputStream.toByteArray();
-//
-//        } catch (Exception e) {
-//            logger.error("建立ZIP檔案失敗", e, SYSTEM);
-//            throw new RuntimeException(e);
-//        }
-//    }
 }

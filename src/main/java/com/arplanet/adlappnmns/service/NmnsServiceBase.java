@@ -20,7 +20,6 @@ import org.springframework.context.ApplicationContext;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -81,15 +80,6 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
         DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
         writeProcessedDataToZip(processedList, date, zipStream, prettyPrinter);
     }
-
-//    @Override
-//    public List<ZipEntryData> doProcess(String date, ProcessContext processContext) {
-//        List<T> dataList = findByDate(date, processContext);
-//
-//        List<T> newList = processData(date, dataList);
-//
-//        return createZipEntries(newList, date, processType.getTypeName());
-//    }
 
     @Override
     public List<T> processData(String date, List<T> dataList) {
@@ -198,30 +188,6 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
             throw new RuntimeException(e);
         }
     }
-//
-//    protected List<ZipEntryData> createZipEntries(List<T> dataList, String date, String typeName) {
-//        DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
-//
-//        if (dataList.isEmpty()) {
-//            return List.of(createZipEntryData(createFileName(date, 0, 0, typeName), "[]"));
-//        }
-//
-//        // 每5000筆包成一個json檔
-//        return IntStream.range(0, (dataList.size() + PACKAGE_SIZE - 1) / PACKAGE_SIZE)
-//                .mapToObj(i -> {
-//                    int start = i * PACKAGE_SIZE;
-//                    int end = Math.min(start + PACKAGE_SIZE, dataList.size());
-//                    List<?> subList = dataList.subList(start, end);
-//                    try {
-//                        String jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
-//                        return createZipEntryData(createFileName(date, start + 1, end, typeName), jsonContent);
-//                    } catch (Exception e) {
-//                        logger.error("建立ZIP檔案的" + typeName + "Json檔失敗", e, SYSTEM);
-//                        throw new RuntimeException(e);
-//                    }
-//                })
-//                .collect(Collectors.toList());
-//    }
 
     private String createFileName(String date, int start, int end, String type) {
         return date +
@@ -231,11 +197,6 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                 type +
                 ".json";
     }
-
-//    private ZipEntryData createZipEntryData(String fileName, String content) {
-//        byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
-//        return new ZipEntryData(fileName, contentBytes);
-//    }
 
     protected abstract void validateData(T data);
 

@@ -5,7 +5,6 @@ import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.service.NmnsServiceBase;
-import com.arplanet.adlappnmns.utils.DataConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +31,6 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
     @Autowired
     protected Logger logger;
 
-    @Autowired
-    private DataConverter dataConverter;
-    
     @Override
     public List<T> findByDate(String date, ProcessContext processContext) {
 
@@ -82,7 +78,6 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
             } catch (Exception e) {
                 HashMap<String, Object> payload = new HashMap<>();
                 payload.put("file_path", filePath);
-                payload.put("content", content);
                 payload.put("data", data);
                 payload.put("line_number", i + 1);
 
