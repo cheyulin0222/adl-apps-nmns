@@ -38,7 +38,7 @@ public class NmnsTest {
     @Test
     void testLongTerm() {
         String sDate = "2023-11-01";
-        String eDate = "2024-11-04";
+        String eDate = "2024-11-20";
         List<String> dateList = generateDateList(sDate, eDate);
 
         scheduledTaskService.processDates(dateList);

@@ -6,7 +6,9 @@ import com.arplanet.adlappnmns.enums.ProcessType;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.GCSRepository;
+import com.arplanet.adlappnmns.repository.S3Repository;
 import com.arplanet.adlappnmns.service.NmnsService;
+import com.arplanet.adlappnmns.service.support.ZipWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,14 +29,22 @@ public class NmnsServiceFacade {
 
     private final NmnsBeanFactory nmnsBeanFactory;
     private final GCSRepository gcsRepository;
+    private final S3Repository s3Repository;
     private final Logger logger;
     private final LogContext logContext;
+    private final ZipWriter zipWriter;
 
     @Value("${gcs.bucket.name}")
     private String gcsDestinationBucketName;
 
     @Value("${gcs.destination.folder}")
     private String gcsDestinationFolder;
+
+    @Value("${aws.s3.write.bucket.name}")
+    private String s3bucketName;
+
+    @Value("${aws.s3.write.folder}")
+    private String s3DestinationFolder;
 
     public void process(String date) {
         try {
@@ -49,7 +59,14 @@ public class NmnsServiceFacade {
                     gcsDestinationBucketName,
                     destinationPath,
                     APPLICATION_ZIP,
-                    outputStream -> processAndWriteToStream(date, outputStream)
+                    gcsOutputStream  ->
+                            s3Repository.streamToS3(
+                                    s3bucketName,
+                                    s3DestinationFolder,
+                                    APPLICATION_ZIP,
+                                    s3OutputStream -> processAndWriteToStream(date, gcsOutputStream, s3OutputStream)
+                            )
+
             );
 
             logger.info("上傳成功");
@@ -59,9 +76,11 @@ public class NmnsServiceFacade {
         }
     }
 
-    private void processAndWriteToStream(String date, OutputStream outputStream) throws Exception {
-        try (ZipOutputStream zipStream = new ZipOutputStream(outputStream)) {
-
+    private void processAndWriteToStream(String date, OutputStream gcsOutputStream, OutputStream s3OutputStream) throws Exception {
+        try (
+            ZipOutputStream gcsZipStream  = new ZipOutputStream(gcsOutputStream);
+            ZipOutputStream s3ZipStream = new ZipOutputStream(s3OutputStream)
+        ) {
             // 先取得各個 service 執行前需要的共同資料
             ProcessContext processContext = getContext(date);
 
@@ -72,10 +91,13 @@ public class NmnsServiceFacade {
                     .peek(processType -> logContext.setCurrentDate(date))
                     .forEach(processType -> {
                         NmnsService<?> nmnsService = nmnsBeanFactory.getNmnsService(processType.getNmnsService());
-                        nmnsService.doProcess(date, processContext, zipStream);
+                        nmnsService.doProcess(date, processContext, gcsZipStream, s3ZipStream);
                     });
 
-            zipStream.finish();
+            gcsZipStream.finish();
+            s3ZipStream.finish();
+            zipWriter.removeLock(gcsZipStream);
+            zipWriter.removeLock(s3ZipStream);
         }
     }
 

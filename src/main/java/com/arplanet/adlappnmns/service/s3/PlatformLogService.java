@@ -122,7 +122,6 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
         if (login.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
         if (login.getContext() == null) throw new NmnsServiceException("context 不可為 null");
         if (login.getContext().getIdp() == null) throw new NmnsServiceException("idp 不可為 null");
-        if (login.getContext().getSub() == null) throw new NmnsServiceException("openidSub 不可為 null");
         if (login.getContext().getUserId() == null) throw new NmnsServiceException("userId 不可為 null");
         if (login.getActionTimestampMs() == null) throw new NmnsServiceException("loginTimestamp 不可為 null");
         if (logoutTimestamp == null) throw new NmnsServiceException("logoutTimestamp 不可為 null");

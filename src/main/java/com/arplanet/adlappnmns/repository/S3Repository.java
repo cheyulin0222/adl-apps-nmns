@@ -1,31 +1,38 @@
 package com.arplanet.adlappnmns.repository;
 
 import com.arplanet.adlappnmns.log.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.function.ThrowingConsumer;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 
 @Repository
+@RequiredArgsConstructor
+@Slf4j
 public class S3Repository {
 
-    @Autowired
-    private S3Client s3Client;
-    @Autowired
-    private Logger logger;
+    private static final int CHUNK_SIZE = 1024 * 1024; // 1MB
+    private static final int MAX_RETRIES = 3;
+
+    private final S3Client s3Client;
+    private final Logger logger;
 
     public List<S3Object> listFiles(String bucketName, String folder) {
         // 產生ListObject請求物件
@@ -105,5 +112,58 @@ public class S3Repository {
                 .build();
         // 送出請求
         s3Client.putObject(request, RequestBody.fromBytes(content));
+    }
+
+    public void streamToS3(String bucketName, String objectName, String contentType, ThrowingConsumer<OutputStream> streamWriter) {
+        int retryCount = 0;
+
+        while(true) {
+            try {
+                // 建立管道
+                PipedOutputStream outputStream = new PipedOutputStream();
+                PipedInputStream inputStream = new PipedInputStream(outputStream, CHUNK_SIZE);
+
+                // 非同步線程：等待讀取輸入流並上傳
+                CompletableFuture<PutObjectResponse> future = CompletableFuture.supplyAsync(() -> {
+                    PutObjectRequest request = PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectName)
+                            .acl(ObjectCannedACL.PRIVATE)
+                            .contentType(contentType)
+                            .build();
+
+                    try (inputStream) {
+                        // 準備好要從 inputStream 讀取資料
+                        return s3Client.putObject(request, RequestBody.fromInputStream(inputStream, -1));
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                });
+
+                try (outputStream) {
+                    // 主程式寫入資料
+                    streamWriter.accept(outputStream);
+                    future.join();  // 等待上傳完成
+                    return;
+                }
+            } catch (Exception e) {
+                handleRetry(e, ++retryCount);
+            }
+        }
+    }
+
+    private void handleRetry(Exception e, int retryCount) {
+        if (retryCount > MAX_RETRIES) {
+            logger.error("s3 上傳失敗超過 " + MAX_RETRIES + " 次", e, SYSTEM);
+            throw new RuntimeException(e);
+        }
+        log.warn("上傳失敗，準備第 {} 次重試", retryCount, e);
+
+        try {
+            Thread.sleep((long) Math.pow(2, retryCount) * 1000L);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("重試等待被中斷", ie);
+        }
     }
 }

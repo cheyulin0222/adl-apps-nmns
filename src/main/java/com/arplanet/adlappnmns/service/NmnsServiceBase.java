@@ -6,6 +6,7 @@ import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.LogContext;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.S3Repository;
+import com.arplanet.adlappnmns.service.support.ZipWriter;
 import com.arplanet.adlappnmns.utils.DataConverter;
 import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SERVICE;
@@ -47,7 +47,7 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     private String destinationFolder;
 
 
-    private final Object zipLock = new Object();
+//    private final Object zipLock = new Object();
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -61,6 +61,8 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     private DataConverter dataConverter;
     @Autowired
     private LogContext logContext;
+    @Autowired
+    private ZipWriter zipWriter;
 
     protected ProcessType processType;
 
@@ -73,12 +75,12 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     }
 
     @Override
-    public void doProcess(String date, ProcessContext processContext, ZipOutputStream zipStream) {
+    public void doProcess(String date, ProcessContext processContext, ZipOutputStream gcsZipStream, ZipOutputStream s3ZipStream) {
         List<T> dataList = findByDate(date, processContext);
         List<T> processedList  = processData(date, dataList);
 
-        DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
-        writeProcessedDataToZip(processedList, date, zipStream, prettyPrinter);
+        writeProcessedDataToZip(processedList, date, gcsZipStream);
+        writeProcessedDataToZip(processedList, date, s3ZipStream);
     }
 
     @Override
@@ -126,12 +128,14 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
         }
     }
 
-    private void writeProcessedDataToZip(List<T> processedList, String date,
-                                         ZipOutputStream zipStream, DefaultPrettyPrinter prettyPrinter) {
+    private void writeProcessedDataToZip(List<T> processedList, String date, ZipOutputStream zipStream) {
+
+        DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
+
+        try {
             if (processedList.isEmpty()) {
-                synchronized (zipLock) {
-                    writeEmptyArrayToZip(date, zipStream);
-                }
+                String fileName = createFileName(date, 0, 0, processType.getTypeName());
+                zipWriter.writeEntry(fileName, "[]", zipStream);
                 return;
             }
 
@@ -139,55 +143,42 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
             IntStream.range(0, (totalSize + PACKAGE_SIZE - 1) / PACKAGE_SIZE)
                     .parallel()
                     .peek(i -> logContext.setCurrentDate(date))
-                    .forEach(i -> writeDataChunkToZip(
-                            processedList,
-                            date,
-                            zipStream,
-                            prettyPrinter,
-                            i,
-                            totalSize
-                    ));
+                    .forEach(i -> {
+                        int start = i * PACKAGE_SIZE;
+                        int end = Math.min(start + PACKAGE_SIZE, totalSize);
+                        List<?> subList = processedList.subList(start, end);
 
+                        String fileName = createFileName(date, start + 1, end, processType.getTypeName());
 
-    }
+                        String jsonContent;
+                        try {
+                            jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
+                        } catch (JsonProcessingException e) {
+                            logger.error(processType.getTypeName() + "Json Processing 失敗", e, SYSTEM);
+                            throw new RuntimeException(e);
+                        }
 
-    private void writeDataChunkToZip(List<T> processedList, String date,
-                                     ZipOutputStream zipStream, DefaultPrettyPrinter prettyPrinter,
-                                     int chunkIndex, int totalSize) {
-        try {
-            int start = chunkIndex * PACKAGE_SIZE;
-            int end = Math.min(start + PACKAGE_SIZE, totalSize);
-            List<?> subList = processedList.subList(start, end);
+                        zipWriter.writeEntry(fileName, jsonContent, zipStream);
 
-            String fileName = createFileName(date, start + 1, end, processType.getTypeName());
-
-            String jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
-
-            synchronized (zipLock) {
-                ZipEntry zipEntry = new ZipEntry(fileName);
-                zipStream.putNextEntry(zipEntry);
-                zipStream.write(jsonContent.getBytes(StandardCharsets.UTF_8));
-                zipStream.closeEntry();
-            }
-
+                    });
         } catch (Exception e) {
-            logger.error("寫入ZIP檔案的" + processType.getTypeName() + "Json檔失敗", e, SYSTEM);
+            logger.error(processType.getTypeName() + "寫入ZIP檔案失敗", e, SYSTEM);
             throw new RuntimeException(e);
         }
     }
-
-    private void writeEmptyArrayToZip(String date, ZipOutputStream zipStream) {
-        try {
-            String fileName = createFileName(date, 0, 0, processType.getTypeName());
-            ZipEntry zipEntry = new ZipEntry(fileName);
-            zipStream.putNextEntry(zipEntry);
-            zipStream.write("[]".getBytes(StandardCharsets.UTF_8));
-            zipStream.closeEntry();
-        } catch (Exception e) {
-            logger.error("寫入ZIP檔案的" + processType.getTypeName() + "Json檔失敗", e, SYSTEM);
-            throw new RuntimeException(e);
-        }
-    }
+//
+//    private void writeEmptyArrayToZip(String date, ZipOutputStream zipStream) {
+//        try {
+//            String fileName = createFileName(date, 0, 0, processType.getTypeName());
+//            ZipEntry zipEntry = new ZipEntry(fileName);
+//            zipStream.putNextEntry(zipEntry);
+//            zipStream.write("[]".getBytes(StandardCharsets.UTF_8));
+//            zipStream.closeEntry();
+//        } catch (Exception e) {
+//            logger.error("寫入ZIP檔案的" + processType.getTypeName() + "Json檔失敗", e, SYSTEM);
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private String createFileName(String date, int start, int end, String type) {
         return date +

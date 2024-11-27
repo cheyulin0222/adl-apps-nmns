@@ -35,7 +35,6 @@ public class AssessmentLogService extends NmnsServiceBase<AssessmentLogDTO>{
         if (data.getAssessmentSn() == null) throw new NmnsServiceException("assessment_sn 不可為 null");
         if (data.getItemSn() == null) throw new NmnsServiceException("item_sn 不可為 null");
         if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
-        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
         if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
         if (data.getStartTimestamp() == null) throw new NmnsServiceException("start_timestamp 不可為 null");
         if (data.getEndTimestamp() == null) throw new NmnsServiceException("end_timestamp 不可為 null");

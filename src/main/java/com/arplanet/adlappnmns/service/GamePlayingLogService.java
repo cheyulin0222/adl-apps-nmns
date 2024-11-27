@@ -29,7 +29,6 @@ public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
     protected void validateData(GamePlayingLogDTO data) {
         if (data.getLogSn() == null) throw new NmnsServiceException("log_sn 不可為 null");
         if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
-        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
         if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
         if (data.getGameSn() == null) throw new NmnsServiceException("game_sn 不可為 null");
         if (data.getCorrectness() == null) throw new NmnsServiceException("correctness 不可為 null");

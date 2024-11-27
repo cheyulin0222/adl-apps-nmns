@@ -28,7 +28,6 @@ public class UserInfoService extends NmnsServiceBase<UserInfoDTO> {
         if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
         if (data.getIdp() == null) throw new NmnsServiceException("idp 不可為 null");
         if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
-        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
         if (data.getCreationTimestamp() == null) throw new NmnsServiceException("creation_timestamp 不可為 null");
         if (data.getUpdateTimestamp() == null) throw new NmnsServiceException("update_timestamp 不可為 null");
     }

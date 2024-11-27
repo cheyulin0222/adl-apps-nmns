@@ -17,14 +17,14 @@ public interface NmnsUserUnitContentSessionRepository extends JpaRepository<Nmns
     @Query(nativeQuery = true, value =
         "SELECT " +
             "CONVERT(nsucs.session_id, CHAR) as logSn, " +
-            "CONVERT(nu.sub, CHAR) as openidSub, " +
+            "CONVERT(nu.openid_sub, CHAR) as openidSub, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
             "'play_content' as logType, " +
             "CONVERT(nsucs.unit_content_id, CHAR) as materialSn, " +
             "nsucs.created_at as startTimestamp, " +
-            "nsucs.finished_at as endTimestamp, " +
+            "nsucs.updated_at as endTimestamp, " +
             "nsucs.expired_at as expiredTimestamp, " +
-            "CAST(TIMESTAMPDIFF(SECOND, nsucs.created_at, COALESCE(nsucs.finished_at, nsucs.updated_at)) AS SIGNED) as duration, " +
+            "CAST(TIMESTAMPDIFF(SECOND, nsucs.created_at, nsucs.updated_at) AS SIGNED) as duration, " +
             "nsucs.created_at as creationTimestamp, " +
             "nsucs.updated_at as updateTimestamp " +
         "FROM nmns_user_unit_content_session nsucs " +
@@ -39,7 +39,7 @@ public interface NmnsUserUnitContentSessionRepository extends JpaRepository<Nmns
             "CONVERT(nsucs.session_id, CHAR) as assessmentSn, " +
             "CONVERT(nuqs.quiz_id, CHAR) as paperSn, " +
             "CONVERT(nsucs.uid, CHAR) as uid, " +
-            "CONVERT(nu.sub, CHAR) as openidSub, " +
+            "CONVERT(nu.openid_sub, CHAR) as openidSub, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
             "ROUND(SUM(CASE WHEN nuqs.is_correct = 1 THEN 1 ELSE 0 END) / COUNT(*) * 100) as score, " +
             "CAST(TIMESTAMPDIFF(SECOND, nsucs.created_at, nsucs.updated_at) AS UNSIGNED) as duration, " +

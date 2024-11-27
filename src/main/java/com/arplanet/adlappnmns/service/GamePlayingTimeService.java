@@ -26,7 +26,6 @@ public class GamePlayingTimeService extends NmnsServiceBase<GamePlayingTimeDTO> 
     protected void validateData(GamePlayingTimeDTO data) {
         if (data.getPlayingTimeSn() == null) throw new NmnsServiceException("playing_time_sn 不可為 null");
         if (data.getUid() == null) throw new NmnsServiceException("uid 不可為 null");
-        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
         if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
         if (data.getGameSn() == null) throw new NmnsServiceException("game_sn 不可為 null");
         if (data.getDuration() == null) throw new NmnsServiceException("duration 不可為 null");

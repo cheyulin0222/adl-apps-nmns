@@ -25,7 +25,6 @@ public class InstructionDataLogService extends NmnsServiceBase<InstructionDataLo
     @Override
     protected void validateData(InstructionDataLogDTO data) {
         if (data.getLogSn() == null) throw new NmnsServiceException("log_sn 不可為 null");
-        if (data.getOpenidSub() == null) throw new NmnsServiceException("openid_sub 不可為 null");
         if (data.getUserId() == null) throw new NmnsServiceException("user_id 不可為 null");
         if (data.getLogType() == null) throw new NmnsServiceException("log_type 不可為 null");
         if (data.getMaterialSn() == null) throw new NmnsServiceException("material_sn 不可為 null");

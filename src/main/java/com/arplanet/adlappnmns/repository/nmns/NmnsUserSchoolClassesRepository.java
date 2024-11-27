@@ -18,7 +18,7 @@ public interface NmnsUserSchoolClassesRepository extends JpaRepository<NmnsUserS
         "SELECT " +
             "nusc.id as classSn, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
-            "CONVERT(nu.sub, CHAR) as openidSub, " +
+            "CONVERT(nu.openid_sub, CHAR) as openidSub, " +
             "CONVERT(nu.city, CHAR) as cityId, " +
             "CONVERT(ns.school_id, CHAR) as organizationId, " +
             "CONVERT(ns.school_name, CHAR) as organizationName, " +

@@ -20,7 +20,7 @@ public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
             "CONVERT(nu.idp, CHAR) as idp, " +
             "CONVERT(nu.login_method, CHAR) as loginMethod, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
-            "CONVERT(nu.sub, CHAR) as openidSub, " +
+            "CONVERT(nu.openid_sub, CHAR) as openidSub, " +
             "CONVERT(nu.name, CHAR) as name, " +
             "CONVERT(nu.email, CHAR) as email, " +
             "NULLIF(GROUP_CONCAT(DISTINCT CONVERT(nust.title, CHAR) SEPARATOR ','), '') as identity, " +
@@ -41,7 +41,7 @@ public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
             "uid as `key`, " +
             "JSON_OBJECT(" +
                 "'userId', user_id, " +
-                "'openidSub', sub" +
+                "'openidSub', openid_sub" +
             ") as value " +
             "FROM nmns_user " +
             "WHERE uid IN :uidList",

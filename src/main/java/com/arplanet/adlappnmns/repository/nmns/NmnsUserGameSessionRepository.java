@@ -44,7 +44,7 @@ public interface NmnsUserGameSessionRepository extends JpaRepository<NmnsUserGam
         "SELECT " +
             "CONVERT(nugrs.session_id, CHAR) as playingTimeSn, " +
             "CONVERT(nugrs.uid, CHAR) as uid, " +
-            "CONVERT(nu.sub, CHAR) as openidSub, " +
+            "CONVERT(nu.openid_sub, CHAR) as openidSub, " +
             "CONVERT(nu.user_id, CHAR) as userId, " +
             "CONVERT(nugs.room_id, CHAR) as gameSn, " +
             "CAST(TIMESTAMPDIFF(SECOND, nugs.started_at, COALESCE(nugs.finished_at, nugs.started_at)) AS SIGNED) as duration, " +
