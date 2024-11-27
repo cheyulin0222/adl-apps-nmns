@@ -43,11 +43,8 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
     @Value("${aws.s3.write.bucket.name}")
     private String bucketName;
 
-    @Value("${aws.s3.write.folder}")
+    @Value("${aws.s3.static.data.write.folder}")
     private String destinationFolder;
-
-
-//    private final Object zipLock = new Object();
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -166,19 +163,6 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
             throw new RuntimeException(e);
         }
     }
-//
-//    private void writeEmptyArrayToZip(String date, ZipOutputStream zipStream) {
-//        try {
-//            String fileName = createFileName(date, 0, 0, processType.getTypeName());
-//            ZipEntry zipEntry = new ZipEntry(fileName);
-//            zipStream.putNextEntry(zipEntry);
-//            zipStream.write("[]".getBytes(StandardCharsets.UTF_8));
-//            zipStream.closeEntry();
-//        } catch (Exception e) {
-//            logger.error("寫入ZIP檔案的" + processType.getTypeName() + "Json檔失敗", e, SYSTEM);
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     private String createFileName(String date, int start, int end, String type) {
         return date +

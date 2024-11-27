@@ -35,34 +35,37 @@ public class NmnsServiceFacade {
     private final ZipWriter zipWriter;
 
     @Value("${gcs.bucket.name}")
-    private String gcsDestinationBucketName;
+    private String gcpBucketName;
 
     @Value("${gcs.destination.folder}")
-    private String gcsDestinationFolder;
+    private String gcpZipFolder;
 
     @Value("${aws.s3.write.bucket.name}")
     private String s3bucketName;
 
-    @Value("${aws.s3.write.folder}")
-    private String s3DestinationFolder;
+    @Value("${aws.s3.zip.write.folder}")
+    private String s3ZipBackupFolder;
 
     public void process(String date) {
         try {
             logger.info("教育大數據開始執行");
             logger.info("執行日期: " + date);
 
-            // 產生GCP路徑
-            String destinationPath = getDestinationPath(gcsDestinationFolder, date);
+            // 產生GCP zip路徑
+            String gcpDestinationPath = getDestinationPath(gcpZipFolder, date);
+            // 產生s3 zip備份路徑
+            String s3DestinationPath = getDestinationPath(s3ZipBackupFolder, date);
+
 
             // 先取得GCS bucket 的 OutputStream，將 OutputStream 傳給各 Service 使用串流方式上傳到 GCS
             gcsRepository.streamToGCS(
-                    gcsDestinationBucketName,
-                    destinationPath,
+                    gcpBucketName,
+                    gcpDestinationPath,
                     APPLICATION_ZIP,
                     gcsOutputStream  ->
                             s3Repository.streamToS3(
                                     s3bucketName,
-                                    s3DestinationFolder,
+                                    s3DestinationPath,
                                     APPLICATION_ZIP,
                                     s3OutputStream -> processAndWriteToStream(date, gcsOutputStream, s3OutputStream)
                             )

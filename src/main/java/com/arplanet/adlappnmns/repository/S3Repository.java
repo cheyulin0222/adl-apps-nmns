@@ -3,7 +3,6 @@ package com.arplanet.adlappnmns.repository;
 import com.arplanet.adlappnmns.log.Logger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.function.ThrowingConsumer;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -118,36 +117,51 @@ public class S3Repository {
         int retryCount = 0;
 
         while(true) {
+            PipedInputStream inputStream = null;
+            PipedOutputStream outputStream = null;
+
             try {
-                // 建立管道
-                PipedOutputStream outputStream = new PipedOutputStream();
-                PipedInputStream inputStream = new PipedInputStream(outputStream, CHUNK_SIZE);
+                log.debug("開始建立管道");
+                inputStream = new PipedInputStream(CHUNK_SIZE);
+                outputStream = new PipedOutputStream(inputStream);
 
-                // 非同步線程：等待讀取輸入流並上傳
+                log.debug("開始寫入資料");
+                // 先寫入資料
+                streamWriter.accept(outputStream);
+                outputStream.close();
+                log.debug("資料寫入完成");
+
+                // 再上傳
+                final PipedInputStream finalInputStream = inputStream;
+                log.debug("開始上傳");
                 CompletableFuture<PutObjectResponse> future = CompletableFuture.supplyAsync(() -> {
-                    PutObjectRequest request = PutObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(objectName)
-                            .acl(ObjectCannedACL.PRIVATE)
-                            .contentType(contentType)
-                            .build();
+                    try {
+                        PutObjectRequest request = PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectName)
+                                .acl(ObjectCannedACL.PRIVATE)
+                                .contentType(contentType)
+                                .build();
 
-                    try (inputStream) {
-                        // 準備好要從 inputStream 讀取資料
-                        return s3Client.putObject(request, RequestBody.fromInputStream(inputStream, -1));
+                        return s3Client.putObject(request,
+                                RequestBody.fromInputStream(finalInputStream, finalInputStream.available())
+                        );
                     } catch (Exception e) {
+                        log.error("上傳失敗", e);
                         throw new CompletionException(e);
                     }
                 });
 
-                try (outputStream) {
-                    // 主程式寫入資料
-                    streamWriter.accept(outputStream);
-                    future.join();  // 等待上傳完成
-                    return;
-                }
+                log.debug("等待上傳完成");
+                future.join();
+                log.debug("上傳完成");
+                return;
+
             } catch (Exception e) {
                 handleRetry(e, ++retryCount);
+            } finally {
+                if (outputStream != null) try { outputStream.close(); } catch (IOException e) { }
+                if (inputStream != null) try { inputStream.close(); } catch (IOException e) { }
             }
         }
     }
