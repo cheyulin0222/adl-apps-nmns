@@ -2,6 +2,7 @@ package com.arplanet.adlappnmns.repository.nmns;
 
 import com.arplanet.adlappnmns.domain.nmns.NmnsUser;
 import com.arplanet.adlappnmns.dto.UserInfoDTO;
+import jakarta.persistence.Tuple;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,14 +38,16 @@ public interface NmnsUserRepository extends JpaRepository<NmnsUser, Long> {
             @Param("end") Timestamp end
     );
 
-    @Query(value = "SELECT " +
-            "uid as `key`, " +
-            "JSON_OBJECT(" +
-                "'userId', user_id, " +
-                "'openidSub', openid_sub" +
-            ") as value " +
-            "FROM nmns_user " +
-            "WHERE uid IN :uidList",
-            nativeQuery = true)
-    Map<Long, Map<String, String>> findUserMapByUidIn(@Param("uidList") List<Long> uidList);
+//    @Query(value = "SELECT " +
+//            "uid as `key`, " +
+//            "JSON_OBJECT(" +
+//                "'userId', user_id, " +
+//                "'openidSub', openid_sub" +
+//            ") as value " +
+//            "FROM nmns_user " +
+//            "WHERE uid IN :uidList",
+//            nativeQuery = true)
+//    List<Tuple> findUserMapByUidIn(@Param("uidList") List<Long> uidList);
+
+    List<NmnsUser> findByUidIn(List<Long> uidList);
 }

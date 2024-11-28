@@ -105,7 +105,7 @@ public class PlatformLogService extends NmnsS3ServiceBase<PlatformLogDTO, Platfo
                     .platformLogSn(login.getSessionId())
                     .uid(login.getUid())
                     .idp(login.getContext().getIdp())
-                    .openidSub(login.getContext().getSub())
+                    .openidSub(login.getContext().getOpenidSub())
                     .userId(login.getContext().getUserId())
                     .loginTimestamp(login.getActionTimestampMs())
                     .logoutTimestamp(logoutTimestamp)

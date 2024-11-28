@@ -19,6 +19,9 @@ public class PlatformLogContext {
 
     private String sub;
 
+    @JsonProperty("openid_sub")
+    private String openidSub;
+
     @JsonProperty("platforms_tracking_prior")
     private String platformsTrackingPrior;
 

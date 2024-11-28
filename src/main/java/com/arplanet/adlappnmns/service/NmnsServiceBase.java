@@ -93,7 +93,7 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                             saveToS3(data);
                             return true;
                         } catch (NmnsServiceException e) {
-                            logger.error(processType.getTypeName() + " 資料驗證失敗", e, dataMap, SERVICE);
+                            logger.error(processType.getTypeName() + " " + e.getMessage(), e, dataMap, SERVICE);
                             return false;
                         } catch (S3Exception e) {
                             logger.error(processType.getTypeName() + " 上傳S3失敗", e, dataMap, SYSTEM);
@@ -117,7 +117,7 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                             validateData(data);
                             return true;
                         } catch (NmnsServiceException e) {
-                            logger.error(processType.getTypeName() + " 資料驗證失敗", e, dataMap, SERVICE);
+                            logger.error(processType.getTypeName() + " " + e.getMessage(), e, dataMap, SERVICE);
                             return false;
                         }
                     })

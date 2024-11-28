@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.service;
 
+import com.arplanet.adlappnmns.domain.nmns.NmnsUser;
 import com.arplanet.adlappnmns.domain.s3.LogBase;
 import com.arplanet.adlappnmns.domain.s3.SessionInfoLogContext;
 import com.arplanet.adlappnmns.dto.GamePlayingLogDTO;
@@ -7,17 +8,25 @@ import com.arplanet.adlappnmns.dto.ProcessContext;
 import com.arplanet.adlappnmns.exception.NmnsServiceException;
 import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.nmns.NmnsUserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 
 
 @Service("gamePlayingLogService")
 @RequiredArgsConstructor
+@Slf4j
 public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
 
     public static final String GAME_PLAYING_LOG_UNIT_CONTENT_TYPE = "game";
@@ -52,10 +61,21 @@ public class GamePlayingLogService extends NmnsServiceBase<GamePlayingLogDTO> {
             List<Long> uidList = sessionInfoList.stream()
                     .filter(logBase -> "game".equals(logBase.getContext().getUnitContentType()))
                     .map(logBase -> logBase.getContext().getUid())
+                    .filter(Objects::nonNull)
                     .distinct()
                     .toList();
 
-            Map<Long, Map<String, String>> userInfoMap  = nmnsUserRepository.findUserMapByUidIn(uidList);
+
+            Map<Long, Map<String, String>> userInfoMap = nmnsUserRepository.findByUidIn(uidList).stream()
+                    .collect(Collectors.toMap(
+                            NmnsUser::getUid,
+                            user -> {
+                                Map<String, String> map = new HashMap<>();
+                                map.put("userId", user.getUserId());
+                                map.put("openidSub", user.getOpenidSub());
+                                return map;
+                            }
+                    ));
 
             return sessionInfoList.stream()
                     .filter(logBase -> "game".equals(logBase.getContext().getUnitContentType()))
