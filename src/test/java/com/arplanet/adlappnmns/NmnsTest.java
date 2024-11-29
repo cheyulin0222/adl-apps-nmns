@@ -27,7 +27,7 @@ public class NmnsTest {
 
     @Test
     void test() {
-        String date = "2024-11-28";
+        String date = "2024-11-26";
         List<String> dateList = new ArrayList<>();
         dateList.add(date);
 

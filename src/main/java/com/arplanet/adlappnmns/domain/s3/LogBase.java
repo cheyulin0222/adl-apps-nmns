@@ -1,5 +1,6 @@
 package com.arplanet.adlappnmns.domain.s3;
 
+import com.arplanet.adlappnmns.deserializer.UidDeserializer;
 import com.arplanet.adlappnmns.deserializer.UnixTimestampDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,6 +20,7 @@ public class LogBase<T> {
     @JsonProperty("log_sn")
     private String logSn;
 
+    @JsonDeserialize(using = UidDeserializer.class)
     private String uid;
 
     @JsonProperty("action_type")

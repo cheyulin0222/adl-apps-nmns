@@ -8,9 +8,9 @@ import com.arplanet.adlappnmns.log.Logger;
 import com.arplanet.adlappnmns.repository.S3Repository;
 import com.arplanet.adlappnmns.service.support.ZipWriter;
 import com.arplanet.adlappnmns.utils.DataConverter;
-import com.arplanet.adlappnmns.utils.ServiceUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -40,6 +40,8 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
             .enable(SerializationFeature.INDENT_OUTPUT)
             .setSerializationInclusion(JsonInclude.Include.ALWAYS);
 
+    public static final DefaultPrettyPrinter prettyPrinter;
+
     @Value("${aws.s3.write.bucket.name}")
     private String bucketName;
 
@@ -63,6 +65,10 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
 
     protected ProcessType processType;
 
+    static {
+        prettyPrinter = new DefaultPrettyPrinter();
+        prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+    }
 
 
     @PostConstruct
@@ -76,8 +82,7 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
         List<T> dataList = findByDate(date, processContext);
         List<T> processedList  = processData(date, dataList);
 
-        writeProcessedDataToZip(processedList, date, gcsZipStream);
-        writeProcessedDataToZip(processedList, date, s3ZipStream);
+        writeProcessedDataToZip(processedList, date, gcsZipStream, s3ZipStream);
     }
 
     @Override
@@ -125,14 +130,12 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
         }
     }
 
-    private void writeProcessedDataToZip(List<T> processedList, String date, ZipOutputStream zipStream) {
-
-        DefaultPrettyPrinter prettyPrinter = ServiceUtil.createPrettyPrinter();
-
+    private void writeProcessedDataToZip(List<T> processedList, String date, ZipOutputStream gcsZipStream, ZipOutputStream s3ZipStream) {
         try {
             if (processedList.isEmpty()) {
                 String fileName = createFileName(date, 0, 0, processType.getTypeName());
-                zipWriter.writeEntry(fileName, "[]", zipStream);
+                zipWriter.writeEntry(fileName, "[]", gcsZipStream);
+                zipWriter.writeEntry(fileName, "[]", s3ZipStream);
                 return;
             }
 
@@ -147,15 +150,8 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
 
                         String fileName = createFileName(date, start + 1, end, processType.getTypeName());
 
-                        String jsonContent;
-                        try {
-                            jsonContent = mapper.writer(prettyPrinter).writeValueAsString(subList);
-                        } catch (JsonProcessingException e) {
-                            logger.error(processType.getTypeName() + "Json Processing 失敗", e, SYSTEM);
-                            throw new RuntimeException(e);
-                        }
-
-                        zipWriter.writeEntry(fileName, jsonContent, zipStream);
+                        zipWriter.writeEntry(fileName, writeJsonToStream(subList), gcsZipStream);
+                        zipWriter.writeEntry(fileName, writeJsonToStream(subList), s3ZipStream);
 
                     });
         } catch (Exception e) {
@@ -171,6 +167,15 @@ public abstract class NmnsServiceBase<T> implements NmnsService<T> {
                 "_" +
                 type +
                 ".json";
+    }
+
+    private String writeJsonToStream(List<?> subList) {
+        try {
+            return mapper.writer(prettyPrinter).writeValueAsString(subList);
+        } catch (JsonProcessingException e) {
+            logger.error(processType.getTypeName() + "Json Processing 失敗", e, SYSTEM);
+            throw new RuntimeException(e);
+        }
     }
 
     protected abstract void validateData(T data);

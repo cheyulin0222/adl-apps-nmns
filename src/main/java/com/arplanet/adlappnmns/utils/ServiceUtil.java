@@ -1,8 +1,6 @@
 package com.arplanet.adlappnmns.utils;
 
 import com.arplanet.adlappnmns.exception.NmnsServiceException;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -16,14 +14,6 @@ public class ServiceUtil {
 
     public static String APPLICATION_ZIP = "application/zip";
     public static String APPLICATION_JSON = "application/json";
-
-    public static DefaultPrettyPrinter createPrettyPrinter() {
-        DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
-        prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
-        return prettyPrinter;
-    }
-
-
 
     public static Integer calculateDifferenceInSeconds(Timestamp timestamp1, Timestamp timestamp2) {
         // 確保 timestamp1 不晚於 timestamp2
