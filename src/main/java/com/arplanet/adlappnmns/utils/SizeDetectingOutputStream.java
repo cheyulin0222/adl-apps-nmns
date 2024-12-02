@@ -1,7 +1,8 @@
-package com.arplanet.adlappnmns.stream;
+package com.arplanet.adlappnmns.utils;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.OutputStream;
 
 @Getter
 @Setter
+@Slf4j
 public class SizeDetectingOutputStream extends OutputStream {
     private static final int MULTIPART_THRESHOLD = 5 * 1024 * 1024; // 5MB
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();  // 直接初始化
@@ -32,16 +34,22 @@ public class SizeDetectingOutputStream extends OutputStream {
         }
     }
 
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
+
         if (!exceedThreshold) {
+            // 若buffer 大於 5MB
             if (buffer.size() + len > MULTIPART_THRESHOLD) {
                 exceedThreshold = true;
                 OutputStream newStream = callback.onExceedThreshold();
+
                 // 1. 把之前的資料寫到新 stream
                 newStream.write(buffer.toByteArray());
+
                 // 2. 把當前的資料寫到新 stream
                 newStream.write(b, off, len);
+
                 // 3. 保存這個 stream 供後續使用
                 this.redirectStream = newStream;
             } else {

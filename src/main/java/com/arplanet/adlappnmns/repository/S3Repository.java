@@ -1,7 +1,7 @@
 package com.arplanet.adlappnmns.repository;
 
 import com.arplanet.adlappnmns.log.Logger;
-import com.arplanet.adlappnmns.stream.SizeDetectingOutputStream;
+import com.arplanet.adlappnmns.utils.SizeDetectingOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -15,7 +15,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -28,6 +27,7 @@ import static com.arplanet.adlappnmns.enums.ErrorType.SYSTEM;
 public class S3Repository {
 
     private static final int PART_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final int BUFFER_SIZE = 10 * 1024 * 1024;
     private static final int MAX_RETRIES = 3;
 
     private final S3Client s3Client;
@@ -118,24 +118,9 @@ public class S3Repository {
 
         while(retryCount <= MAX_RETRIES) {
             try {
-                // 使用自定義的 OutputStream 來檢測大小
-                SizeDetectingOutputStream detector = new SizeDetectingOutputStream();
 
-                detector.setCallback(() -> {
-                    log.debug("檔案超過 5MB，切換到 multipart upload");
-                    try {
-                        // 建立新的管道
-                        PipedInputStream inputStream = new PipedInputStream(PART_SIZE);
-                        PipedOutputStream outputStream = new PipedOutputStream(inputStream);
-
-                        // 啟動 multipart upload
-                        startMultipartUpload(bucketName, objectName, contentType, inputStream);
-
-                        return outputStream;  // 返回新的 output stream
-                    } catch (Exception e) {
-                        throw new RuntimeException("初始化 multipart upload 失敗", e);
-                    }
-                });
+                //
+                SizeDetectingOutputStream detector = getSizeDetectingOutputStream(bucketName, objectName, contentType);
 
                 // 寫入資料
                 streamWriter.accept(detector);
@@ -161,6 +146,27 @@ public class S3Repository {
         }
     }
 
+    private SizeDetectingOutputStream getSizeDetectingOutputStream(String bucketName, String objectName, String contentType) {
+        SizeDetectingOutputStream detector = new SizeDetectingOutputStream();
+
+        detector.setCallback(() -> {
+            log.info("檔案超過 5MB，切換到 multipart upload");
+            try {
+                // 建立新的管道
+                PipedInputStream inputStream = new PipedInputStream(BUFFER_SIZE);
+                PipedOutputStream outputStream = new PipedOutputStream(inputStream);
+
+                // 啟動 multipart upload
+                CompletableFuture.runAsync(() -> startMultipartUpload(bucketName, objectName, contentType, inputStream));
+
+                return outputStream;  // 返回新的 output stream
+            } catch (Exception e) {
+                throw new RuntimeException("初始化 multipart upload 失敗", e);
+            }
+        });
+        return detector;
+    }
+
     private void startMultipartUpload(String bucketName, String objectName, String contentType, InputStream inputStream) {
         CreateMultipartUploadRequest createRequest = CreateMultipartUploadRequest.builder()
                 .bucket(bucketName)
@@ -169,7 +175,10 @@ public class S3Repository {
                 .build();
 
         String uploadId = null;
+
+        // 用來儲存每個分段上傳的異步任務，會在上傳完成後提供分段上傳的結果
         List<CompletableFuture<CompletedPart>> uploadFutures = new ArrayList<>();
+        // 追蹤當前上傳是第幾個分段
         AtomicInteger partNumberCounter = new AtomicInteger(1);
         byte[] buffer = new byte[PART_SIZE];
 
@@ -178,14 +187,15 @@ public class S3Repository {
             CreateMultipartUploadResponse createResponse = s3Client.createMultipartUpload(createRequest);
             uploadId = createResponse.uploadId();
             final String finalUploadId = uploadId;
-            log.debug("開始 multipart upload，uploadId={}", uploadId);
 
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) > 0) {
                 int partNumber = partNumberCounter.getAndIncrement();
                 byte[] dataChunk = Arrays.copyOf(buffer, bytesRead); // 必須拷貝，避免異步處理時數據被覆蓋
 
-                // 異步上傳每個分段
+                // 將異步上傳任務添加到uploadFutures 中
+                // CompletableFuture.supplyAsync() 方法會啟動一個新的異步任務，並且在新線程中執行指定的任務
+                // supplyAsync()會接受一個 Supplier，它是一個函數接口，當 supplyAsync 被調用時，會在一個獨立的線程中執行該函數，並且可以返回一個結果
                 uploadFutures.add(CompletableFuture.supplyAsync(() -> uploadPart(bucketName, objectName, finalUploadId, partNumber, dataChunk)));
             }
 
@@ -205,7 +215,7 @@ public class S3Repository {
                     .build();
 
             s3Client.completeMultipartUpload(completeRequest);
-            log.debug("完成 multipart upload，objectName={}", objectName);
+            log.info("完成 multipart upload，objectName={}", objectName);
 
         } catch (Exception e) {
             log.error("multipart upload 失敗", e);
@@ -226,6 +236,7 @@ public class S3Repository {
                     .partNumber(partNumber)
                     .build();
 
+            // S3 中，ETag 是每個對象的唯一標識符，用於檢查對象是否發生了變化
             String eTag = s3Client.uploadPart(uploadPartRequest, RequestBody.fromBytes(dataChunk)).eTag();
             return CompletedPart.builder()
                     .partNumber(partNumber)
@@ -252,126 +263,6 @@ public class S3Repository {
         }
     }
 
-//    public void streamToS3(String bucketName, String objectName, String contentType, ThrowingConsumer<OutputStream> streamWriter) {
-//        int retryCount = 0;
-//
-//        while (true) {
-//            ByteArrayOutputStream byteArrayOutputStream = null;
-//
-//            try {
-//                // 使用 ByteArrayOutputStream 在內存中先寫入資料
-//                byteArrayOutputStream = new ByteArrayOutputStream();
-//
-//                // 讓資料寫入 ByteArrayOutputStream
-//                streamWriter.accept(byteArrayOutputStream);
-//
-//                // 取得資料長度
-//                byte[] data = byteArrayOutputStream.toByteArray();
-//                long contentLength = data.length;
-//
-//                // 只有當 contentLength 小於 5MB 時，才可以直接上傳
-//                if (contentLength <= 5 * 1024 * 1024) {
-//                    // 使用 S3 客戶端上傳資料
-//                    PutObjectRequest request = PutObjectRequest.builder()
-//                            .bucket(bucketName)
-//                            .key(objectName)
-//                            .contentType(contentType)
-//                            .contentLength(contentLength) // 這裡設定 contentLength
-//                            .build();
-//
-//                    s3Client.putObject(request, RequestBody.fromBytes(data)); // 使用從 byteArrayOutputStream 取得的資料
-//
-//                    log.info("上傳成功");
-//
-//                } else {
-//                    // 如果資料大於 5MB，可以考慮使用 multipart upload 或其他處理方式
-//                    log.warn("檔案超過 5MB，無法直接上傳");
-//                }
-//
-//                return;
-//
-//            } catch (Exception e) {
-//                log.error("上傳失敗", e);
-//                handleRetry(e, ++retryCount);
-//            } finally {
-//                // 清理資源
-//                if (byteArrayOutputStream != null) {
-//                    try { byteArrayOutputStream.close(); } catch (IOException e) { }
-//                }
-//            }
-//        }
-//    }
-
-//    public void streamToS3(String bucketName, String objectName, String contentType, ThrowingConsumer<OutputStream> streamWriter) {
-//        int retryCount = 0;
-//
-//        while(true) {
-//            PipedInputStream inputStream = null;
-//            PipedOutputStream outputStream = null;
-//            BufferedInputStream bufferedInputStream = null;
-//
-//            try {
-//
-//                // 建立讀取端，設定緩衝區大小，當inputStream 資料達到上限，outputStream 的寫入就會阻塞
-//                inputStream = new PipedInputStream();
-//                bufferedInputStream = new BufferedInputStream(inputStream, 5 * 1024 * 1024);
-//                // 建立寫入端，連接到讀取端
-//                outputStream = new PipedOutputStream(inputStream);
-//
-//                // 建立最終的輸入流引用，給 lambda 使用
-//                final PipedInputStream finalInputStream = inputStream;
-//
-//                log.info("available={}", finalInputStream.available());
-//
-//                // 非同步上傳
-//                CompletableFuture<PutObjectResponse> future = CompletableFuture.supplyAsync(() -> {
-//                    try {
-//                        // 在新的線程中執行上傳操作
-//                        PutObjectRequest request = PutObjectRequest.builder()
-//                                .bucket(bucketName)
-//                                .key(objectName)
-//                                .acl(ObjectCannedACL.PRIVATE)
-//                                .contentType(contentType)
-//                                .build();
-//
-//                        // 使用輸入流建立請求體並上傳
-//                        log.info("available={}", finalInputStream.available());
-//
-//                        return s3Client.putObject(request,
-//                                // RequestBody 告訴 S3 這是資料的來源（inputStream）從這裡讀取資料並上傳
-//                                // finalInputStream - 要上傳的資料來源
-//                                // finalInputStream.available() - 嘗試取得可讀取的字節數（檔案大小）
-//                                RequestBody.fromInputStream(finalInputStream, -1)
-//                        );
-//                    } catch (Exception e) {
-//                        log.error("上傳失敗", e);
-//                        throw new CompletionException(e);
-//                    }
-//                });
-//
-//                log.info("available={}", finalInputStream.available());
-//
-//                // 執行外部寫入操作，會把檔案寫入到 outputStream ， 資料會直接流到 inputStream
-//                streamWriter.accept(outputStream);
-//                log.info("available={}", finalInputStream.available());
-//                // 寫完後關閉輸出流
-//                outputStream.close();
-//
-//                // 等待CompletableFuture完成
-//                future.join();
-//                return;
-//
-//            } catch (Exception e) {
-//                handleRetry(e, ++retryCount);
-//            } finally {
-//                if (outputStream != null) try { outputStream.close(); } catch (IOException e) { }
-//                if (inputStream != null) try { inputStream.close(); } catch (IOException e) { }
-//            }
-//        }
-//    }
-
-
-
     private void handleRetry(Exception e, int retryCount) {
         if (retryCount > MAX_RETRIES) {
             logger.error("s3 上傳失敗超過 " + MAX_RETRIES + " 次", e, SYSTEM);
@@ -386,83 +277,4 @@ public class S3Repository {
             throw new RuntimeException("重試等待被中斷", ie);
         }
     }
-
-//    public void streamToS3(String bucketName, String objectName, String contentType, ThrowingConsumer<OutputStream> streamWriter) {
-//        int retryCount = 0;
-//
-//        while(retryCount <= MAX_RETRIES) {
-//            PipedInputStream inputStream = null;
-//            PipedOutputStream outputStream = null;
-//
-//            try {
-//
-//                // 建立讀取端，設定緩衝區大小，當inputStream 資料達到上限，outputStream 的寫入就會阻塞
-//                inputStream = new PipedInputStream(CHUNK_SIZE);
-//                // 建立寫入端，連接到讀取端
-//                outputStream = new PipedOutputStream(inputStream);
-//
-//                // 建立最終的輸入流引用，給 lambda 使用
-//                final PipedInputStream finalInputStream = inputStream;
-//
-//
-//                // 非同步上傳
-//                CompletableFuture<PutObjectResponse> future = CompletableFuture.supplyAsync(() -> {
-//                    try {
-//                        // 在新的線程中執行上傳操作
-//                        PutObjectRequest request = PutObjectRequest.builder()
-//                                .bucket(bucketName)
-//                                .key(objectName)
-//                                .acl(ObjectCannedACL.PRIVATE)
-//                                .contentType(contentType)
-//                                .build();
-//
-//                        // 使用輸入流建立請求體並上傳
-//                        return s3Client.putObject(request,
-//                                // RequestBody 告訴 S3：這是資料的來源（inputStream） 請你從這裡讀取資料並上傳
-//                                // finalInputStream - 要上傳的資料來源
-//                                // finalInputStream.available() - 嘗試取得可讀取的字節數（檔案大小）
-//                                RequestBody.fromInputStream(finalInputStream, finalInputStream.available())
-//                        );
-//                    } catch (Exception e) {
-//                        log.error("上傳失敗", e);
-//                        return null;
-//                    }
-//                });
-//
-//                // 執行外部寫入操作，會把檔案寫入到 outputStream ， 資料會直接流到 inputStream
-//                streamWriter.accept(outputStream);
-//                // 寫完後關閉輸出流
-//                outputStream.close();
-//
-//                // 等待上傳完成
-//                try {
-//                    future.join();
-//                } catch (CompletionException e) {
-//                    log.error("S3 上傳失敗", e);
-//                    handleRetry(e, ++retryCount);
-//                }
-//
-//            } catch (Exception e) {
-//                handleRetry(e, ++retryCount);
-//            } finally {
-//                if (outputStream != null) try { outputStream.close(); } catch (IOException ignored) { }
-//                if (inputStream != null) try { inputStream.close(); } catch (IOException ignored) { }
-//            }
-//        }
-//    }
-//
-//    private void handleRetry(Exception e, int retryCount) {
-//        if (retryCount > MAX_RETRIES) {
-//            log.error("s3 上傳失敗超過 " + MAX_RETRIES + " 次", e);
-//            return;
-//        }
-//        log.warn("上傳失敗，準備第 {} 次重試", retryCount, e);
-//
-//        try {
-//            Thread.sleep((long) Math.pow(2, retryCount) * 1000L);
-//        } catch (InterruptedException ie) {
-//            Thread.currentThread().interrupt();
-//            log.error("重試等待被中斷", ie);
-//        }
-//    }
 }
