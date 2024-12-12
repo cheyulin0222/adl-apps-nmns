@@ -55,6 +55,7 @@ public abstract class NmnsS3ServiceBase<T, L> extends NmnsServiceBase<T> {
 
         try {
             content = s3Repository.readFile(bucketName, filePath);
+
         } catch (Exception e) {
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("file_path", filePath);

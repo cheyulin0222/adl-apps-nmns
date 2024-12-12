@@ -3,19 +3,19 @@ aws.access.key=${AWS_ACCESS_KEY}
 aws.secret.key=${AWS_SECRET_KEY}
 
 #S3設定
-aws.s3.read.bucket.name=your-bucket-name
-aws.s3.read.folder=your-folder
-aws.s3.write.bucket.name=your-bucket-name
-aws.s3.write.folder=your-folder
+aws.s3.read.bucket.name=test-log-nmns.arplanets.com
+aws.s3.read.folder=raw/
+aws.s3.write.bucket.name=test-log-nmns.arplanets.com
+aws.s3.static.data.write.folder=edu_raw/
+aws.s3.zip.write.folder=edu_backup/
 
 #GCS設定
-gcs.bucket.name=your-bucket-name
+gcs.bucket.name=nmns-edu-data-2024-test
 gcs.destination.folder=your-folder
 
 #DB
 spring.datasource.url=${DB_URL}
 spring.datasource.username=${DB_USER}
 spring.datasource.password=${DB_PWD}
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 

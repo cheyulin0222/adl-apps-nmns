@@ -59,7 +59,8 @@ aws.secret.key=${AWS_SECRET_KEY}
 aws.s3.read.bucket.name=你的讀取桶名稱
 aws.s3.read.folder=讀取文件夾路徑
 aws.s3.write.bucket.name=寫入桶名稱
-aws.s3.write.folder=寫入文件夾路徑
+aws.s3.static.data.write.folder=靜態資源備份路徑
+aws.s3.zip.write.folder=zip備份路徑
 
 # GCS配置
 gcs.bucket.name=GCS桶名稱
